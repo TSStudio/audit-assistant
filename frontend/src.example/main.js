@@ -7,6 +7,10 @@ require.ensure(
         var App = require("./App.vue").default;
         var router = require("./router").default;
         require("./css/style.css");
+        require("./css/loginstyle.css");
+        require("./css/docstyle.css");
+        require("./css/homestyle.css");
+        require("./css/vscode-darkplus.css");
 
         var app = createApp(App);
         app.use(router);
@@ -18,5 +22,5 @@ require.ensure(
             document.getElementById("overlay").remove();
         }, 1000);
     },
-    "vue",
+    "vue"
 );
