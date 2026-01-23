@@ -33,4 +33,6 @@ EXPOSE 7860
 
 # 同时启动 uvicorn 和 nginx
 # uvicorn 跑在 127.0.0.1:8000；nginx 对外 7860 并反代 /api/
-ENTRYPOINT ["sh", "-c", "uvicorn backend.main:app --host 127.0.0.1 --port 8000 & nginx -g 'daemon off;'"]
+COPY start.sh /home/user/app/start.sh
+RUN chmod +x /home/user/app/start.sh
+ENTRYPOINT ["/home/user/app/start.sh"]
