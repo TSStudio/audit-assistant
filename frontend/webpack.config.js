@@ -2,9 +2,11 @@ const HtmlWebpackPlugin = require("html-webpack-plugin");
 const { VueLoaderPlugin } = require("vue-loader");
 const { ElementPlusResolver } = require("unplugin-vue-components/resolvers");
 const { EnvironmentPlugin } = require("webpack");
+const unpluginautoimport = require("unplugin-auto-import/webpack");
+const unpluginvuecomponents = require("unplugin-vue-components/webpack");
 
 module.exports = {
-    entry: { bundle: "./src/main.js" },
+    entry: "./src/main.js",
     module: {
         rules: [
             { test: /\.vue$/, use: "vue-loader" },
@@ -31,10 +33,10 @@ module.exports = {
             template: "./src/index.html",
         }),
         new VueLoaderPlugin(),
-        require("unplugin-auto-import/webpack").default({
+        unpluginautoimport({
             resolvers: [ElementPlusResolver()],
         }),
-        require("unplugin-vue-components/webpack").default({
+        unpluginvuecomponents({
             resolvers: [ElementPlusResolver()],
         }),
         new EnvironmentPlugin({
@@ -48,15 +50,5 @@ module.exports = {
         host: "local.tmysam.top",
         port: 8000,
         hot: true,
-        client: {
-            overlay: {
-                runtimeErrors: (error) => {
-                    const ignoreErrors = [
-                        "ResizeObserver loop completed with undelivered notifications.",
-                    ];
-                    return !ignoreErrors.includes(error.message);
-                },
-            },
-        },
     },
 };
