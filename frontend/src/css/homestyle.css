@@ -1,0 +1,196 @@
+#home-view {
+    display: flex;
+}
+
+#menu-btn-home,
+#night-btn-home {
+    font-family: "iconfont";
+    font-size: 1.5em;
+    padding: 1em 1em;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    user-select: none;
+    color: var(--text-color);
+    display: inline-flex;
+}
+#menu-btn-home:hover,
+#night-btn-home:hover {
+    background-color: rgba(0, 0, 0, 0.2);
+}
+
+#night-btn-home {
+    justify-content: flex-end;
+}
+
+#head-title-home {
+    text-align: center;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 1.5em;
+    font-weight: 700;
+    padding: 1em 0;
+    color: var(--text-color);
+    display: inline-flex;
+    justify-content: center;
+    flex: 1;
+}
+
+.main-left {
+    width: 200px;
+    min-width: 200px;
+    height: 100vh;
+    overflow-x: auto;
+    background-color: var(--project-bg);
+    color: var(--project-text);
+}
+.main-main {
+    flex: 1;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.home-main {
+    flex: 1;
+    height: 100vh;
+    overflow-y: auto;
+    overflow-x: hidden;
+    display: flex;
+}
+
+.dialog {
+    background-color: rgba(127, 127, 127, 0.05);
+    padding: 15px 15px 15px 5px;
+    border-radius: 10px;
+    margin: 0 10px 10px 10px;
+    display: flex;
+}
+.dialog-control {
+    display: inline-block;
+}
+.dialog-control-button {
+    padding: 8px;
+    margin-left: 0;
+}
+.dialog-right {
+    display: inline-block;
+    flex: 1;
+    padding: 0 0 0 5px;
+}
+.dialog-role {
+    font-weight: 700;
+    color: var(--text-color);
+}
+.dialog-content {
+    white-space: pre-wrap;
+    color: var(--text-color);
+}
+.paragraphs {
+    min-height: 0;
+    height: 600px;
+    padding: 10px 20px;
+}
+.paragraph {
+    background-color: rgba(127, 127, 127, 0.05);
+    padding: 15px 15px 15px 5px;
+    margin: 0 10px;
+    border: 2px solid transparent;
+    border-radius: 10px;
+    display: flex;
+    transition: border 0.3s;
+}
+.paragraph-divider {
+    margin: 0px 10px;
+    height: 30px;
+    line-height: 30px;
+    text-align: center;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    cursor: pointer;
+    transition: color 0.3s, background-color 0.3s;
+}
+.paragraph-divider:hover {
+    background-color: var(--bg-color-hover);
+}
+.paragraph-selected {
+    border: 2px solid #23a0e3;
+}
+.paragraph-control {
+    display: inline-block;
+}
+.paragraph-control-button {
+    padding: 8px;
+    margin-left: 0;
+}
+.paragraph-main {
+    display: inline-block;
+    flex: 1;
+}
+.project-name-input {
+    box-sizing: border-box;
+    width: 100%;
+}
+.project-edit-status {
+    padding: 5px 60px 5px 60px;
+    color: var(--text-color);
+}
+.edited-warn {
+    color: #ffc21b;
+}
+.new-project-button {
+    margin: 0.3em 1em;
+}
+.project-left {
+    resize: horizontal;
+    overflow-y: auto;
+    overflow-x: hidden;
+    width: 400px;
+    min-width: 0;
+}
+.project-right {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    min-width: 0;
+}
+.project-right-top {
+    height: 320px;
+}
+.project-right-bottom {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    overflow-y: auto;
+}
+
+.dialogs {
+    flex: 1;
+    overflow-y: auto;
+    min-width: 0;
+}
+.chat-input {
+    height: 35px;
+    padding: 0 20px 0 20px;
+    min-width: 0;
+}
+.user-input-prompt {
+    flex: 1;
+    width: 500px;
+}
+
+.input-form {
+    display: flex;
+}
+.cent3r {
+    text-align: center;
+}
+.search-result-card {
+    display: inline-block;
+    background-color: rgba(127, 127, 127, 0.05);
+    padding: 15px 15px 15px 15px;
+    margin: 0 0 10px 0;
+}
+.search-result-card-title {
+    font-weight: 700;
+    color: var(--text-color);
+}
