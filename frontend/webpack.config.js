@@ -47,8 +47,8 @@ module.exports = {
         }),
     ],
     devServer: {
-        host: "local.tmysam.top",
-        port: 8000,
+        host: "localhost",
+        port: 8001,
         hot: true,
     },
 };
