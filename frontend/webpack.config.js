@@ -40,10 +40,10 @@ module.exports = {
             resolvers: [ElementPlusResolver()],
         }),
         new EnvironmentPlugin({
-            API_ARG:
+            API_ENDPOINT:
                 process.env.NODE_ENV == "development"
-                    ? "dev=VXCVCX"
-                    : "dev=NODEV",
+                    ? "ENDPOINT_1"
+                    : "ENDPOINT_2",
         }),
     ],
     devServer: {
