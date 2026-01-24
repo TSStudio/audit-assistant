@@ -21,6 +21,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends libzbar0
 COPY backend/requirements.txt ./backend/requirements.txt
 RUN pip install --no-cache-dir -r ./backend/requirements.txt
 
+RUN python -m playwright install --with-deps chromium
+
 # 拷贝后端代码
 COPY backend/ ./backend/
 
