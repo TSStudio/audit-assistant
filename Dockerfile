@@ -15,7 +15,7 @@ WORKDIR /home/user/app
 RUN apt-get update && apt-get install -y --no-install-recommends nginx \
     && rm -rf /var/lib/apt/lists/*
 
-RUN apt install -y libzbar0
+RUN apt-get update && apt-get install -y --no-install-recommends libzbar0
 
 # 后端依赖
 COPY backend/requirements.txt ./backend/requirements.txt
