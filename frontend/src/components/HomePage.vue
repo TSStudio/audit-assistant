@@ -208,7 +208,7 @@ const screenshotSrc = computed(() => {
     if (!file) return "";
     const name = file.split(/[/\\]/).pop();
     if (!name) return "";
-    return `${apiOrigin.value}/captures/${name}`;
+    return `${apiOrigin.value}/api/captures/${name}`;
 });
 
 const issuesPaneHeight = computed(() => {

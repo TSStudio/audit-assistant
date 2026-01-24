@@ -11,7 +11,7 @@ app = FastAPI(title="Audit Assistant API")
 
 captures_dir = Path(__file__).resolve().parent / "captures"
 captures_dir.mkdir(exist_ok=True)
-app.mount("/captures", StaticFiles(directory=str(captures_dir)), name="captures")
+app.mount("/api/captures", StaticFiles(directory=str(captures_dir)), name="captures")
 
 app.add_middleware(
     CORSMiddleware,
