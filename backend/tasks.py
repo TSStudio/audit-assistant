@@ -17,6 +17,7 @@ from .schema import (
     AuditStartResponse,
     AuditStatusResponse,
     Issue,
+    IssueEvidence,
     TaskStatus,
 )
 from .vision import analyze_images
@@ -133,6 +134,70 @@ def _update_progress(task_id: str, progress: int, message: str) -> None:
     )
 
 
+def _attach_bboxes_from_text_blocks(
+    bundle: ArticleBundle, issues: Optional[list]
+) -> list:
+    """Copy text block bounding boxes onto issue evidence for frontend rendering."""
+
+    block_map = {b.id: b for b in bundle.text_blocks if b.bbox is not None}
+    screenshot_id = bundle.screenshots[0].id if bundle.screenshots else None
+    patched: list = []
+
+    def _resolve_block(ev_text_block_id: Optional[str]):
+        if not ev_text_block_id:
+            return None
+        if ev_text_block_id in block_map:
+            return block_map[ev_text_block_id]
+        if ev_text_block_id.startswith("##ID:"):
+            try:
+                idx = int(ev_text_block_id.replace("##ID:", "").replace("##", ""))
+                return block_map.get(f"t{idx}")
+            except Exception:
+                return None
+        return None
+
+    for item in issues or []:
+        try:
+            if isinstance(item, Issue):
+                ev: IssueEvidence = item.evidence or IssueEvidence()
+                if ev.bbox is None:
+                    block = _resolve_block(ev.text_block_id)
+                else:
+                    block = None
+                if block:
+                    updated_ev = ev.model_copy(
+                        update={
+                            "bbox": block.bbox,
+                            "screenshot_id": ev.screenshot_id or screenshot_id,
+                        }
+                    )
+                    patched.append(item.model_copy(update={"evidence": updated_ev}))
+                else:
+                    patched.append(item)
+            elif isinstance(item, dict):
+                ev = item.get("evidence") or {}
+                block = None
+                if ev.get("bbox") is None:
+                    block = _resolve_block(ev.get("text_block_id"))
+                if block:
+                    ev = dict(ev)
+                    ev["bbox"] = (
+                        block.bbox.model_dump()
+                        if hasattr(block.bbox, "model_dump")
+                        else block.bbox
+                    )
+                    if screenshot_id and not ev.get("screenshot_id"):
+                        ev["screenshot_id"] = screenshot_id
+                    item = dict(item, evidence=ev)
+                patched.append(item)
+            else:
+                patched.append(item)
+        except Exception:
+            patched.append(item)
+
+    return patched
+
+
 def run_pipeline(task_id: str, url: str) -> Tuple[ArticleBundle, list[Issue]]:
     """Run the full audit pipeline synchronously with progress updates."""
 
@@ -147,6 +212,9 @@ def run_pipeline(task_id: str, url: str) -> Tuple[ArticleBundle, list[Issue]]:
 
     _update_progress(task_id, 65, "Text LLM audit")
     issues_text = audit_text(bundle)
+
+    # Attach bounding boxes from captured text blocks so the frontend can render directly.
+    issues_text = _attach_bboxes_from_text_blocks(bundle, issues_text)
 
     _update_progress(task_id, 85, "Multimodal LLM audit")
     issues_mm = audit_multimodal(bundle)

@@ -215,6 +215,21 @@ const issuesPaneHeight = computed(() => {
     return Math.max(shotDisplay.value.h || 400, 400);
 });
 
+function normalizeIssues(rawIssues) {
+    if (!Array.isArray(rawIssues)) return [];
+    return rawIssues.map((issue, idx) => {
+        const normalized = issue ? { ...issue } : {};
+        if (!normalized.id) normalized.id = `issue-${idx + 1}`;
+        const evidence =
+            normalized.evidence && typeof normalized.evidence === "object"
+                ? { ...normalized.evidence }
+                : {};
+        if (evidence.text_block_id == null) delete evidence.text_block_id;
+        normalized.evidence = evidence;
+        return normalized;
+    });
+}
+
 function clearPolling() {
     if (pollTimer) {
         clearTimeout(pollTimer);
@@ -232,6 +247,9 @@ function resetState() {
     targetProgress.value = 0;
     displayProgress.value = 0;
     error.value = "";
+    shotNatural.value = { w: 1, h: 1 };
+    shotDisplay.value = { w: 1, h: 1 };
+    hoverIssueId.value = null;
     issueHeights.value = {};
 }
 
@@ -296,7 +314,7 @@ async function pollStatus() {
         const data = await resp.json();
         status.value = data.status;
         message.value = data.message || "";
-        issues.value = data.issues || [];
+        issues.value = normalizeIssues(data.issues);
         bundle.value = data.result || null;
         if (typeof data.progress === "number") {
             targetProgress.value = data.progress;
@@ -351,27 +369,8 @@ function onShotLoad(event) {
     shotDisplay.value = { w: img.clientWidth || 1, h: img.clientHeight || 1 };
 }
 
-function findBlock(issue) {
-    const ev = issue?.evidence || {};
-    if (!bundle.value?.text_blocks) return null;
-    const blocks = bundle.value.text_blocks;
-
-    if (ev.text_block_id) {
-        const hit = blocks.find((b) => b.id === ev.text_block_id);
-        if (hit) return hit;
-    }
-
-    if (ev.quote) {
-        const hit = blocks.find((b) => b.text?.includes(ev.quote));
-        if (hit) return hit;
-    }
-    return null;
-}
-
 function boxForIssue(issue) {
-    const block = findBlock(issue);
-    if (!block || !block.bbox) return null;
-    return block.bbox;
+    return issue?.evidence?.bbox || null;
 }
 
 function boxStyle(issue) {
@@ -392,8 +391,8 @@ const positionedIssues = computed(() => {
     const scaleY = shotDisplay.value.h / (shotNatural.value.h || 1);
     const withPos = issues.value
         .map((issue) => {
-            const block = findBlock(issue);
-            const y = block?.bbox ? block.bbox.y * scaleY : null;
+            const bbox = boxForIssue(issue);
+            const y = bbox ? bbox.y * scaleY : null;
             const height = issueHeights.value?.[issue.id] || 120;
             return { issue, y, height };
         })
@@ -626,7 +625,8 @@ button.primary:disabled {
 
 .issues-pane {
     position: relative;
-    overflow: hidden;
+    overflow-x: hidden;
+    overflow-y: auto;
     border: 1px solid rgba(255, 255, 255, 0.05);
     border-radius: 12px;
     padding: 6px 4px;

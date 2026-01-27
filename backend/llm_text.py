@@ -106,7 +106,7 @@ def audit_text(bundle: ArticleBundle) -> List[Issue]:
     # debug
     print("snippet:", snippet)
     prompt = (
-        "寻找 typo/前后矛盾（人名错误）/语病（杂糅）/信息错误 in the following text blocks. 因为你不是多模态模型所以不会给你表格/图片，表格实际上是存在的，不要输出图片/表格不存在问题。由于前处理环节可能会在句子中间插入换行，无需在意句子中间多出的换行符。文字块拆解是程序进行的，并不代表段落结构，仅顺序可信，请勿认为一个block只有标题就没有内容，内容可能在下一个block。请发掘尽可能多的上述问题（至于内容问题，请不要指出。禁止利用我没给你的场外信息指出“某文段未在某文章出现”或“某书病粗存在”之类的问题，因为LLM存在幻觉）"
+        "寻找 typo/前后矛盾（人名错误）/语病（杂糅）/信息错误 in the following text blocks. 但不要输出图片/表格不存在的相关问题；由于前处理环节可能会在句子中间插入换行，无需在意句子中间多出的换行符。文字块拆解是程序进行的，并不代表段落结构，仅顺序可信，请勿认为一个block只有标题就没有内容，内容可能在下一个block。请发掘尽可能多的上述问题（至于内容问题，请不要指出。禁止利用我没给你的场外信息指出“某文段未在某文章出现”或“某书并不存在”之类的问题，因为你存在幻觉）"
         'Return JSON {"issues":[{"id":0 (int),"type":"conflict|typo|format|other"(str),"severity":"suggest|warn"(str),"evidence":{"text_block_id":"##ID:x##","quote":"..."},"recommendation":"..."}]}. Return in chinese.\n\n'
         f"TEXT:\n{snippet}"
     )
