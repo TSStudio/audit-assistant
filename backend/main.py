@@ -4,7 +4,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 
-from .schema import AuditRequest, AuditStartResponse, AuditStatusResponse
+from .schema import AuditRequest, AuditStatusResponse
 from .tasks import get_status, start_audit
 
 app = FastAPI(title="Audit Assistant API")
@@ -27,9 +27,9 @@ def health():
     return {"status": "ok"}
 
 
-@app.post("/api/audit", response_model=AuditStartResponse)
-def create_audit(request: AuditRequest):
-    return start_audit(request.url)
+@app.post("/api/audit", response_model=AuditStatusResponse)
+def create_audit(request: AuditRequest, force: bool = False):
+    return start_audit(request.url, force=force)
 
 
 @app.get("/api/audit/{task_id}", response_model=AuditStatusResponse)

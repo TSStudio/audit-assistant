@@ -7,3 +7,4 @@ backend/.env
 backend/__pycache__/
 backend/captures
 captures
+backend/audit_cache.db

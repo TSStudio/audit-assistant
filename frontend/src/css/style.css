@@ -1,3 +1,30 @@
 body{
     margin:0;
 }
+
+.input-group button.primary {
+    padding: 0 18px;
+    background: linear-gradient(135deg, #6366f1, #22d3ee);
+    color: #0b1021;
+    font-weight: 700;
+}
+
+.cache-refresh {
+    margin-top: 8px;
+}
+
+.cache-refresh .ghost {
+    background: transparent;
+    border: 1px solid rgba(99, 102, 241, 0.35);
+    color: #c7d2fe;
+    padding: 10px 14px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.cache-refresh .ghost:hover {
+    border-color: #a5b4fc;
+    color: #fff;
+    background: rgba(99, 102, 241, 0.08);
+}

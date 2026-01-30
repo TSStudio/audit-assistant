@@ -9,12 +9,12 @@ from typing import Dict, List, Optional, Tuple
 from uuid import uuid4
 
 from .capture import capture_article
+from .cache import delete_cached_audit, load_cached_audit, save_audit
 from .llm_multimodal import audit_multimodal
 from .llm_text import audit_text
 from .parser import enrich_bundle
 from .schema import (
     ArticleBundle,
-    AuditStartResponse,
     AuditStatusResponse,
     Issue,
     IssueEvidence,
@@ -26,7 +26,26 @@ from .vision import analyze_images
 _task_store: Dict[str, AuditStatusResponse] = {}
 
 
-def start_audit(url: str) -> AuditStartResponse:
+def start_audit(url: str, force: bool = False) -> AuditStatusResponse:
+    if force:
+        delete_cached_audit(str(url))
+    else:
+        cached = load_cached_audit(str(url))
+        if cached:
+            bundle, raw_issues = cached
+            issues = _coerce_issues(raw_issues)
+            task_id = uuid4().hex
+            record = AuditStatusResponse(
+                task_id=task_id,
+                status=TaskStatus.completed,
+                result=bundle,
+                issues=issues,
+                message="命中缓存，可选择强制刷新。",
+                progress=100,
+            )
+            _task_store[task_id] = record
+            return record
+
     task_id = uuid4().hex
     record = AuditStatusResponse(
         task_id=task_id,
@@ -41,12 +60,13 @@ def start_audit(url: str) -> AuditStartResponse:
     thread = Thread(target=_run_pipeline, args=(task_id, str(url)), daemon=True)
     thread.start()
 
-    return AuditStartResponse(task_id=task_id, status=record.status)
+    return record
 
 
 def _run_pipeline(task_id: str, url: str) -> None:
     try:
         bundle, issues = run_pipeline(task_id, url)
+        save_audit(url, bundle, issues)
         complete_task(task_id, bundle, issues)
     except Exception as exc:  # noqa: BLE001
         fail_task(task_id, f"Audit failed: {exc}")

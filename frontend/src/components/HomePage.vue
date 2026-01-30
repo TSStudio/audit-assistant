@@ -44,6 +44,11 @@
                 <div class="bar" :style="{ width: progressWidth }"></div>
             </div>
             <p v-if="message" class="muted">{{ message }}</p>
+            <div v-if="cacheHit && !loading" class="cache-refresh">
+                <button class="ghost" @click="startAudit(true)">
+                    强制刷新缓存并重新审计
+                </button>
+            </div>
         </div>
 
         <div class="card">
@@ -169,6 +174,7 @@ const error = ref("");
 let pollTimer = null;
 let easeTimer = null;
 const hoverIssueId = ref(null);
+const cacheHit = ref(false);
 const shotImg = ref(null);
 const shotNatural = ref({ w: 1, h: 1 });
 const shotDisplay = ref({ w: 1, h: 1 });
@@ -251,6 +257,7 @@ function resetState() {
     shotDisplay.value = { w: 1, h: 1 };
     hoverIssueId.value = null;
     issueHeights.value = {};
+    cacheHit.value = false;
 }
 
 function stopEaseTimer() {
@@ -276,7 +283,7 @@ function startEaseTimer() {
     }, 1000);
 }
 
-async function startAudit() {
+async function startAudit(force = false) {
     if (!urlInput.value) {
         error.value = "请输入有效的 URL";
         return;
@@ -285,7 +292,7 @@ async function startAudit() {
     resetState();
     loading.value = true;
     try {
-        const resp = await fetch(`${API_BASE}/audit`, {
+        const resp = await fetch(`${API_BASE}/audit?force=${force ? 1 : 0}`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ url: urlInput.value.trim() }),
@@ -294,9 +301,31 @@ async function startAudit() {
         const data = await resp.json();
         taskId.value = data.task_id;
         status.value = data.status;
-        message.value = data.message || "任务已创建，正在启动审计...";
-        targetProgress.value = data.progress || 0;
-        displayProgress.value = targetProgress.value;
+        const msgFallback = force
+            ? "已强制刷新，正在重新审计..."
+            : "任务已创建，正在启动审计...";
+        message.value = data.message || msgFallback;
+        issues.value = normalizeIssues(data.issues || []);
+        bundle.value = data.result || null;
+
+        cacheHit.value =
+            data.status === "completed" &&
+            (data.message || "").includes("命中缓存");
+
+        const initialProgress =
+            typeof data.progress === "number"
+                ? data.progress
+                : data.status === "completed"
+                  ? 100
+                  : 0;
+        targetProgress.value = initialProgress;
+        displayProgress.value = initialProgress;
+
+        if (data.status === "completed" || data.status === "failed") {
+            stopEaseTimer();
+            return;
+        }
+
         startEaseTimer();
         pollStatus();
     } catch (e) {
