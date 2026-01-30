@@ -82,7 +82,9 @@ def save_audit(url: str, bundle: ArticleBundle, issues: list[Issue]) -> None:
             serialized_issues.append(item)
         else:
             try:
-                serialized_issues.append(Issue.model_validate(item).model_dump(mode="json"))
+                serialized_issues.append(
+                    Issue.model_validate(item).model_dump(mode="json")
+                )
             except Exception:
                 continue
 
