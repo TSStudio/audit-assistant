@@ -28,13 +28,7 @@
                         :disabled="loading || !urlInput"
                         @click="startAudit"
                     >
-                        {{
-                            loading
-                                ? "提交中..."
-                                : taskId
-                                  ? "重新提交"
-                                  : "开始审计"
-                        }}
+                        {{ loading ? "提交中..." : "开始审计" }}
                     </button>
                 </div>
                 <p v-if="error" class="error">{{ error }}</p>
@@ -44,10 +38,70 @@
                 <div class="bar" :style="{ width: progressWidth }"></div>
             </div>
             <p v-if="message" class="muted">{{ message }}</p>
-            <div v-if="cacheHit && !loading" class="cache-refresh">
-                <button class="ghost" @click="startAudit(true)">
-                    强制刷新缓存并重新审计
+            <div class="task-actions" v-if="taskId">
+                <button class="ghost" @click="rerunCurrent">
+                    重新运行当前任务
                 </button>
+                <button
+                    class="ghost danger"
+                    v-if="taskHistory.length"
+                    @click="clearHistory"
+                >
+                    清空历史记录
+                </button>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-head">
+                <div>
+                    <p class="eyebrow">任务列表</p>
+                    <h2>历史记录</h2>
+                    <p class="muted">
+                        使用浏览器本地存储保存任务记录。点击可查看进度与结果。
+                    </p>
+                </div>
+                <span class="pill">{{ taskHistory.length }} 条</span>
+            </div>
+            <div v-if="!taskHistory.length" class="empty">
+                <p>暂无历史任务。提交 URL 后会自动记录。</p>
+            </div>
+            <div v-else class="task-list">
+                <div
+                    v-for="item in taskHistory"
+                    :key="item.task_id"
+                    class="task-row"
+                    :class="{ active: item.task_id === taskId }"
+                >
+                    <div class="task-main">
+                        <div class="task-title">
+                            <span class="task-url">{{ item.url }}</span>
+                            <span class="task-status" :class="item.status">
+                                {{ statusText(item.status) }}
+                            </span>
+                        </div>
+                        <div class="task-meta">
+                            <span>任务 ID：{{ item.task_id }}</span>
+                            <span v-if="item.updated_at">
+                                更新时间：{{ formatTime(item.updated_at) }}
+                            </span>
+                            <span v-if="item.progress != null">
+                                进度：{{ item.progress }}%
+                            </span>
+                        </div>
+                    </div>
+                    <div class="task-actions">
+                        <button class="ghost" @click="loadTask(item)">
+                            查看
+                        </button>
+                        <button class="ghost" @click="rerunTask(item)">
+                            重新运行
+                        </button>
+                        <button class="ghost danger" @click="removeTask(item)">
+                            删除
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -174,7 +228,8 @@ const error = ref("");
 let pollTimer = null;
 let easeTimer = null;
 const hoverIssueId = ref(null);
-const cacheHit = ref(false);
+const taskHistory = ref([]);
+const historyKey = "audit_task_history";
 const shotImg = ref(null);
 const shotNatural = ref({ w: 1, h: 1 });
 const shotDisplay = ref({ w: 1, h: 1 });
@@ -257,7 +312,6 @@ function resetState() {
     shotDisplay.value = { w: 1, h: 1 };
     hoverIssueId.value = null;
     issueHeights.value = {};
-    cacheHit.value = false;
 }
 
 function stopEaseTimer() {
@@ -283,7 +337,58 @@ function startEaseTimer() {
     }, 1000);
 }
 
-async function startAudit(force = false) {
+function loadHistory() {
+    try {
+        const raw = localStorage.getItem(historyKey);
+        const parsed = raw ? JSON.parse(raw) : [];
+        taskHistory.value = Array.isArray(parsed) ? parsed : [];
+    } catch (e) {
+        taskHistory.value = [];
+    }
+}
+
+function saveHistory(list) {
+    taskHistory.value = list;
+    localStorage.setItem(historyKey, JSON.stringify(list));
+}
+
+function upsertHistory(item) {
+    const list = [...taskHistory.value];
+    const index = list.findIndex((t) => t.task_id === item.task_id);
+    if (index >= 0) {
+        list[index] = { ...list[index], ...item };
+    } else {
+        list.unshift(item);
+    }
+    saveHistory(list.slice(0, 50));
+}
+
+function removeTask(item) {
+    const list = taskHistory.value.filter((t) => t.task_id !== item.task_id);
+    saveHistory(list);
+}
+
+function clearHistory() {
+    saveHistory([]);
+}
+
+function formatTime(ts) {
+    try {
+        const date = new Date((ts || 0) * 1000);
+        return date.toLocaleString();
+    } catch (e) {
+        return "";
+    }
+}
+
+function statusText(value) {
+    if (value === "running") return "运行中";
+    if (value === "completed") return "已完成";
+    if (value === "failed") return "失败";
+    return value || "未知";
+}
+
+async function startAudit() {
     if (!urlInput.value) {
         error.value = "请输入有效的 URL";
         return;
@@ -292,7 +397,7 @@ async function startAudit(force = false) {
     resetState();
     loading.value = true;
     try {
-        const resp = await fetch(`${API_BASE}/audit?force=${force ? 1 : 0}`, {
+        const resp = await fetch(`${API_BASE}/audit`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ url: urlInput.value.trim() }),
@@ -301,16 +406,18 @@ async function startAudit(force = false) {
         const data = await resp.json();
         taskId.value = data.task_id;
         status.value = data.status;
-        const msgFallback = force
-            ? "已强制刷新，正在重新审计..."
-            : "任务已创建，正在启动审计...";
+        const msgFallback = "任务已创建，正在启动审计...";
         message.value = data.message || msgFallback;
         issues.value = normalizeIssues(data.issues || []);
         bundle.value = data.result || null;
 
-        cacheHit.value =
-            data.status === "completed" &&
-            (data.message || "").includes("命中缓存");
+        upsertHistory({
+            task_id: data.task_id,
+            url: urlInput.value.trim(),
+            status: data.status,
+            progress: data.progress ?? 0,
+            updated_at: Math.floor(Date.now() / 1000),
+        });
 
         const initialProgress =
             typeof data.progress === "number"
@@ -355,6 +462,14 @@ async function pollStatus() {
             }
         }
 
+        upsertHistory({
+            task_id: data.task_id,
+            url: urlInput.value.trim(),
+            status: data.status,
+            progress: data.progress ?? targetProgress.value ?? 0,
+            updated_at: Math.floor(Date.now() / 1000),
+        });
+
         if (data.status === "completed" || data.status === "failed") {
             clearPolling();
             stopEaseTimer();
@@ -372,6 +487,31 @@ onBeforeUnmount(() => {
     clearPolling();
     stopEaseTimer();
 });
+
+function loadTask(item) {
+    if (!item?.task_id) return;
+    resetState();
+    urlInput.value = item.url || "";
+    taskId.value = item.task_id;
+    status.value = item.status || "";
+    message.value = "正在加载任务状态...";
+    issues.value = [];
+    bundle.value = null;
+    targetProgress.value = item.progress ?? 0;
+    displayProgress.value = targetProgress.value;
+    pollStatus();
+}
+
+function rerunTask(item) {
+    if (!item?.url) return;
+    urlInput.value = item.url;
+    startAudit();
+}
+
+function rerunCurrent() {
+    if (!urlInput.value) return;
+    startAudit();
+}
 
 watch(issues, () => {
     issueHeights.value = {};
@@ -397,6 +537,8 @@ function onShotLoad(event) {
     shotNatural.value = { w: img.naturalWidth || 1, h: img.naturalHeight || 1 };
     shotDisplay.value = { w: img.clientWidth || 1, h: img.clientHeight || 1 };
 }
+
+loadHistory();
 
 function boxForIssue(issue) {
     return issue?.evidence?.bbox || null;
@@ -598,6 +740,99 @@ button.primary:disabled {
     font-size: 13px;
 }
 
+.task-list {
+    margin-top: 12px;
+    display: grid;
+    gap: 12px;
+}
+
+.task-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 14px;
+    border-radius: 12px;
+    background: rgba(15, 23, 42, 0.75);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.task-row.active {
+    border-color: rgba(99, 102, 241, 0.7);
+    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.35);
+}
+
+.task-main {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    flex: 1;
+}
+
+.task-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.task-url {
+    font-weight: 600;
+    color: #e5e7eb;
+    word-break: break-all;
+}
+
+.task-status {
+    padding: 4px 8px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.task-status.running {
+    background: rgba(250, 204, 21, 0.15);
+    color: #facc15;
+}
+
+.task-status.completed {
+    background: rgba(52, 211, 153, 0.15);
+    color: #34d399;
+}
+
+.task-status.failed {
+    background: rgba(248, 113, 113, 0.18);
+    color: #f87171;
+}
+
+.task-meta {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    color: #9ca3af;
+    font-size: 12px;
+}
+
+.task-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.ghost {
+    padding: 6px 12px;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: transparent;
+    color: #cbd5f5;
+    cursor: pointer;
+}
+
+.ghost.danger {
+    color: #f87171;
+    border-color: rgba(248, 113, 113, 0.4);
+}
+
 .empty {
     padding: 14px;
     border: 1px dashed rgba(255, 255, 255, 0.16);
@@ -763,6 +998,15 @@ button.primary:disabled {
 
     .issues-pane {
         max-height: none;
+    }
+
+    .task-row {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .task-actions {
+        justify-content: flex-start;
     }
 }
 </style>

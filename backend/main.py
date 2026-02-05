@@ -28,8 +28,8 @@ def health():
 
 
 @app.post("/api/audit", response_model=AuditStatusResponse)
-def create_audit(request: AuditRequest, force: bool = False):
-    return start_audit(request.url, force=force)
+def create_audit(request: AuditRequest):
+    return start_audit(request.url)
 
 
 @app.get("/api/audit/{task_id}", response_model=AuditStatusResponse)

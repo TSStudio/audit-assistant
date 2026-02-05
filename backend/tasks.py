@@ -1,15 +1,10 @@
-"""Task orchestration stubs.
-
-This module keeps an in-memory task registry for the MVP skeleton.
-Replace with Celery/RQ or background workers when implementing real pipelines.
-"""
+"""Task orchestration with persistent storage."""
 
 from threading import Thread
-from typing import Dict, List, Optional, Tuple
+from typing import List, Optional, Tuple
 from uuid import uuid4
 
 from .capture import capture_article
-from .cache import delete_cached_audit, load_cached_audit, save_audit
 from .llm_multimodal import audit_multimodal
 from .llm_text import audit_text
 from .parser import enrich_bundle
@@ -20,53 +15,30 @@ from .schema import (
     IssueEvidence,
     TaskStatus,
 )
+from .store import create_task, get_task, update_task
 from .vision import analyze_images
 
 
-_task_store: Dict[str, AuditStatusResponse] = {}
-
-
-def start_audit(url: str, force: bool = False) -> AuditStatusResponse:
-    if force:
-        delete_cached_audit(str(url))
-    else:
-        cached = load_cached_audit(str(url))
-        if cached:
-            bundle, raw_issues = cached
-            issues = _coerce_issues(raw_issues)
-            task_id = uuid4().hex
-            record = AuditStatusResponse(
-                task_id=task_id,
-                status=TaskStatus.completed,
-                result=bundle,
-                issues=issues,
-                message="命中缓存，可选择强制刷新。",
-                progress=100,
-            )
-            _task_store[task_id] = record
-            return record
-
-    task_id = uuid4().hex
-    record = AuditStatusResponse(
-        task_id=task_id,
-        status=TaskStatus.running,
-        result=None,
-        issues=[],
-        message="Audit pipeline queued.",
-        progress=0,
-    )
-    _task_store[task_id] = record
+def start_audit(url: str) -> AuditStatusResponse:
+    record = create_task(str(url))
+    task_id = record["task_id"]
 
     thread = Thread(target=_run_pipeline, args=(task_id, str(url)), daemon=True)
     thread.start()
 
-    return record
+    return AuditStatusResponse(
+        task_id=task_id,
+        status=TaskStatus.running,
+        result=None,
+        issues=[],
+        message=record.get("message"),
+        progress=record.get("progress", 0),
+    )
 
 
 def _run_pipeline(task_id: str, url: str) -> None:
     try:
         bundle, issues = run_pipeline(task_id, url)
-        save_audit(url, bundle, issues)
         complete_task(task_id, bundle, issues)
     except Exception as exc:  # noqa: BLE001
         fail_task(task_id, f"Audit failed: {exc}")
@@ -141,17 +113,7 @@ def _coerce_issues(raw: Optional[List]) -> List[Issue]:
 
 
 def _update_progress(task_id: str, progress: int, message: str) -> None:
-    if task_id not in _task_store:
-        return
-    record = _task_store[task_id]
-    _task_store[task_id] = AuditStatusResponse(
-        task_id=record.task_id,
-        status=record.status,
-        result=record.result,
-        issues=record.issues,
-        message=message,
-        progress=progress,
-    )
+    update_task(task_id, progress=progress, message=message)
 
 
 def _attach_bboxes_from_text_blocks(
@@ -250,31 +212,37 @@ def run_pipeline(task_id: str, url: str) -> Tuple[ArticleBundle, list[Issue]]:
 
 
 def get_status(task_id: str) -> Optional[AuditStatusResponse]:
-    return _task_store.get(task_id)
+    record = get_task(task_id)
+    if not record:
+        return None
+    bundle = None
+    if record.get("result"):
+        try:
+            bundle = ArticleBundle.model_validate(record["result"])
+        except Exception:
+            bundle = None
+    issues = _coerce_issues(record.get("issues") or [])
+    return AuditStatusResponse(
+        task_id=record["task_id"],
+        status=TaskStatus(record["status"]),
+        result=bundle,
+        issues=issues,
+        message=record.get("message"),
+        progress=record.get("progress"),
+    )
 
 
 def complete_task(task_id: str, bundle: ArticleBundle, issues=None) -> None:
     issues = _coerce_issues(issues)
-    if task_id not in _task_store:
-        return
-    _task_store[task_id] = AuditStatusResponse(
-        task_id=task_id,
-        status=TaskStatus.completed,
-        result=bundle,
-        issues=issues,
+    update_task(
+        task_id,
+        status=TaskStatus.completed.value,
         message="Audit completed.",
         progress=100,
+        result=bundle.model_dump(mode="json"),
+        issues=[issue.model_dump(mode="json") for issue in issues],
     )
 
 
 def fail_task(task_id: str, message: str) -> None:
-    if task_id not in _task_store:
-        return
-    record = _task_store[task_id]
-    _task_store[task_id] = AuditStatusResponse(
-        task_id=task_id,
-        status=TaskStatus.failed,
-        result=record.result,
-        issues=record.issues,
-        message=message,
-    )
+    update_task(task_id, status=TaskStatus.failed.value, message=message)
