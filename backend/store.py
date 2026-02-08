@@ -21,6 +21,7 @@ def _ensure_db() -> None:
             CREATE TABLE IF NOT EXISTS audits (
                 task_id TEXT PRIMARY KEY,
                 url TEXT NOT NULL,
+                checklist TEXT,
                 status TEXT NOT NULL,
                 message TEXT,
                 progress INTEGER,
@@ -31,6 +32,11 @@ def _ensure_db() -> None:
             )
             """
         )
+        # Lightweight migration for existing databases
+        cur = conn.execute("PRAGMA table_info(audits)")
+        cols = {row[1] for row in cur.fetchall()}
+        if "checklist" not in cols:
+            conn.execute("ALTER TABLE audits ADD COLUMN checklist TEXT")
         conn.commit()
     finally:
         conn.close()
@@ -51,26 +57,28 @@ def _deserialize_json(payload: Optional[str]) -> Any:
         return None
 
 
-def create_task(url: str) -> dict:
+def create_task(url: str, checklist: Optional[list[str]] = None) -> dict:
     _ensure_db()
     task_id = uuid4().hex
     now = int(time.time())
     status = TaskStatus.running.value
     message = "Audit pipeline queued."
     progress = 0
+    checklist = checklist or []
 
     conn = sqlite3.connect(DB_PATH)
     try:
         conn.execute(
             """
             INSERT INTO audits (
-                task_id, url, status, message, progress, result, issues, created_at, updated_at
+                task_id, url, checklist, status, message, progress, result, issues, created_at, updated_at
             )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 task_id,
                 url,
+                _serialize_json(checklist),
                 status,
                 message,
                 progress,
@@ -87,6 +95,7 @@ def create_task(url: str) -> dict:
     return {
         "task_id": task_id,
         "url": url,
+        "checklist": checklist,
         "status": status,
         "message": message,
         "progress": progress,
@@ -100,6 +109,7 @@ def create_task(url: str) -> dict:
 def update_task(
     task_id: str,
     *,
+    checklist: Any = None,
     status: Optional[str] = None,
     message: Optional[str] = None,
     progress: Optional[int] = None,
@@ -110,6 +120,9 @@ def update_task(
     fields = []
     values = []
 
+    if checklist is not None:
+        fields.append("checklist = ?")
+        values.append(_serialize_json(checklist))
     if status is not None:
         fields.append("status = ?")
         values.append(status)
@@ -150,7 +163,7 @@ def get_task(task_id: str) -> Optional[dict]:
     try:
         cur = conn.execute(
             """
-            SELECT task_id, url, status, message, progress, result, issues, created_at, updated_at
+            SELECT task_id, url, checklist, status, message, progress, result, issues, created_at, updated_at
             FROM audits WHERE task_id = ?
             """,
             (task_id,),
@@ -161,6 +174,7 @@ def get_task(task_id: str) -> Optional[dict]:
         (
             task_id,
             url,
+            checklist,
             status,
             message,
             progress,
@@ -172,6 +186,7 @@ def get_task(task_id: str) -> Optional[dict]:
         return {
             "task_id": task_id,
             "url": url,
+            "checklist": _deserialize_json(checklist) or [],
             "status": status,
             "message": message,
             "progress": progress,

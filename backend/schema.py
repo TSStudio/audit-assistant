@@ -113,6 +113,7 @@ class ArticleBundle(BaseModel):
 
 class AuditRequest(BaseModel):
     url: HttpUrl
+    checklist: List[str] = Field(default_factory=list)
 
 
 class AuditStartResponse(BaseModel):
@@ -125,6 +126,7 @@ class AuditStatusResponse(BaseModel):
     status: TaskStatus
     result: Optional[ArticleBundle] = None
     issues: List[Issue] = Field(default_factory=list)
+    checklist: List[str] = Field(default_factory=list)
     message: Optional[str] = None
     progress: Optional[int] = Field(
         default=None,

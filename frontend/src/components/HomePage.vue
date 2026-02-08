@@ -31,6 +31,17 @@
                         {{ loading ? "提交中..." : "开始审计" }}
                     </button>
                 </div>
+                <label for="checklistInput">审核清单（可选）</label>
+                <textarea
+                    id="checklistInput"
+                    v-model="checklistInput"
+                    class="checklist"
+                    rows="3"
+                    placeholder="每行一条，例如：
+人名校对
+日期一致性检查"
+                    :disabled="loading"
+                ></textarea>
                 <p v-if="error" class="error">{{ error }}</p>
                 <p v-if="taskId" class="task-id">任务 ID：{{ taskId }}</p>
             </div>
@@ -87,6 +98,9 @@
                             </span>
                             <span v-if="item.progress != null">
                                 进度：{{ item.progress }}%
+                            </span>
+                            <span v-if="item.checklist?.length">
+                                清单：{{ formatChecklist(item.checklist) }}
                             </span>
                         </div>
                     </div>
@@ -216,6 +230,7 @@ const API_BASE =
         : "/api";
 
 const urlInput = ref("");
+const checklistInput = ref("");
 const taskId = ref("");
 const status = ref("");
 const message = ref("");
@@ -388,6 +403,19 @@ function statusText(value) {
     return value || "未知";
 }
 
+function parseChecklist(value) {
+    return (value || "")
+        .split(/\r?\n/)
+        .map((item) => item.trim())
+        .filter(Boolean);
+}
+
+function formatChecklist(list) {
+    if (!Array.isArray(list) || list.length === 0) return "";
+    const preview = list.slice(0, 3).join("、");
+    return list.length > 3 ? `${preview}…` : preview;
+}
+
 async function startAudit() {
     if (!urlInput.value) {
         error.value = "请输入有效的 URL";
@@ -400,7 +428,10 @@ async function startAudit() {
         const resp = await fetch(`${API_BASE}/audit`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ url: urlInput.value.trim() }),
+            body: JSON.stringify({
+                url: urlInput.value.trim(),
+                checklist: parseChecklist(checklistInput.value),
+            }),
         });
         if (!resp.ok) throw new Error(`提交失败：${resp.status}`);
         const data = await resp.json();
@@ -414,6 +445,7 @@ async function startAudit() {
         upsertHistory({
             task_id: data.task_id,
             url: urlInput.value.trim(),
+            checklist: parseChecklist(checklistInput.value),
             status: data.status,
             progress: data.progress ?? 0,
             updated_at: Math.floor(Date.now() / 1000),
@@ -452,6 +484,9 @@ async function pollStatus() {
         message.value = data.message || "";
         issues.value = normalizeIssues(data.issues);
         bundle.value = data.result || null;
+        if (Array.isArray(data.checklist)) {
+            checklistInput.value = data.checklist.join("\n");
+        }
         if (typeof data.progress === "number") {
             targetProgress.value = data.progress;
             if (targetProgress.value >= 100) {
@@ -465,6 +500,9 @@ async function pollStatus() {
         upsertHistory({
             task_id: data.task_id,
             url: urlInput.value.trim(),
+            checklist: Array.isArray(data.checklist)
+                ? data.checklist
+                : parseChecklist(checklistInput.value),
             status: data.status,
             progress: data.progress ?? targetProgress.value ?? 0,
             updated_at: Math.floor(Date.now() / 1000),
@@ -492,6 +530,7 @@ function loadTask(item) {
     if (!item?.task_id) return;
     resetState();
     urlInput.value = item.url || "";
+    checklistInput.value = (item.checklist || []).join("\n");
     taskId.value = item.task_id;
     status.value = item.status || "";
     message.value = "正在加载任务状态...";
@@ -658,6 +697,17 @@ input[type="url"] {
     background: rgba(15, 23, 42, 0.7);
     color: #e5e7eb;
     outline: none;
+}
+
+.checklist {
+    padding: 12px;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: rgba(15, 23, 42, 0.7);
+    color: #e5e7eb;
+    outline: none;
+    resize: vertical;
+    min-height: 80px;
 }
 
 input:disabled {

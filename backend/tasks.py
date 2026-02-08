@@ -19,11 +19,15 @@ from .store import create_task, get_task, update_task
 from .vision import analyze_images
 
 
-def start_audit(url: str) -> AuditStatusResponse:
-    record = create_task(str(url))
+def start_audit(url: str, checklist: Optional[List[str]] = None) -> AuditStatusResponse:
+    record = create_task(str(url), checklist=checklist or [])
     task_id = record["task_id"]
 
-    thread = Thread(target=_run_pipeline, args=(task_id, str(url)), daemon=True)
+    thread = Thread(
+        target=_run_pipeline,
+        args=(task_id, str(url), record.get("checklist") or []),
+        daemon=True,
+    )
     thread.start()
 
     return AuditStatusResponse(
@@ -31,14 +35,17 @@ def start_audit(url: str) -> AuditStatusResponse:
         status=TaskStatus.running,
         result=None,
         issues=[],
+        checklist=record.get("checklist") or [],
         message=record.get("message"),
         progress=record.get("progress", 0),
     )
 
 
-def _run_pipeline(task_id: str, url: str) -> None:
+def _run_pipeline(
+    task_id: str, url: str, checklist: Optional[List[str]] = None
+) -> None:
     try:
-        bundle, issues = run_pipeline(task_id, url)
+        bundle, issues = run_pipeline(task_id, url, checklist=checklist or [])
         complete_task(task_id, bundle, issues)
     except Exception as exc:  # noqa: BLE001
         fail_task(task_id, f"Audit failed: {exc}")
@@ -180,7 +187,9 @@ def _attach_bboxes_from_text_blocks(
     return patched
 
 
-def run_pipeline(task_id: str, url: str) -> Tuple[ArticleBundle, list[Issue]]:
+def run_pipeline(
+    task_id: str, url: str, checklist: Optional[List[str]] = None
+) -> Tuple[ArticleBundle, list[Issue]]:
     """Run the full audit pipeline synchronously with progress updates."""
 
     _update_progress(task_id, 5, "Starting capture")
@@ -193,13 +202,13 @@ def run_pipeline(task_id: str, url: str) -> Tuple[ArticleBundle, list[Issue]]:
     bundle = analyze_images(bundle)
 
     _update_progress(task_id, 65, "Text LLM audit")
-    issues_text = audit_text(bundle)
+    issues_text = audit_text(bundle, checklist=checklist or [])
 
     # Attach bounding boxes from captured text blocks so the frontend can render directly.
     issues_text = _attach_bboxes_from_text_blocks(bundle, issues_text)
 
     _update_progress(task_id, 85, "Multimodal LLM audit")
-    issues_mm = audit_multimodal(bundle)
+    issues_mm = audit_multimodal(bundle, checklist=checklist or [])
 
     issues = issues_text + issues_mm
     try:
@@ -227,6 +236,7 @@ def get_status(task_id: str) -> Optional[AuditStatusResponse]:
         status=TaskStatus(record["status"]),
         result=bundle,
         issues=issues,
+        checklist=record.get("checklist") or [],
         message=record.get("message"),
         progress=record.get("progress"),
     )

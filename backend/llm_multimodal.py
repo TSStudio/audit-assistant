@@ -355,7 +355,8 @@ def _call_vlm(
                             "type": "text",
                             "text": (
                                 "查找图片中可能出现的问题。"
-                                "返回json结果。填充bbox。用中文回答。 **尽可能多地查找问题**。至少找出一个问题！"
+                                "返回json结果。填充bbox。用中文回答。 **尽可能多地查找问题**。至少找出一个问题！\n\n"
+                                f"补充上下文（JSON 摘要或额外说明）：\n{summary_text}"
                             ),
                         },
                         *[
@@ -372,7 +373,9 @@ def _call_vlm(
         return None
 
 
-def audit_multimodal(bundle: ArticleBundle) -> List[Issue]:
+def audit_multimodal(
+    bundle: ArticleBundle, checklist: Optional[List[str]] = None
+) -> List[Issue]:
     """Call Qwen VLM with an image and structured summary to check consistency."""
 
     image_path = _select_image_path(bundle)
@@ -384,8 +387,10 @@ def audit_multimodal(bundle: ArticleBundle) -> List[Issue]:
     if not original_data_url or not grid_data_url:
         return []
 
+    checklist = [item.strip() for item in (checklist or []) if item and item.strip()]
     summary = {
         "source_url": bundle.source_url,
+        "checklist": checklist,
         "target_image": {
             "filename": image_path.name,
             "width": width,
@@ -441,9 +446,10 @@ def audit_multimodal(bundle: ArticleBundle) -> List[Issue]:
     except Exception:
         pass
 
+    summary_payload = json.dumps(summary, ensure_ascii=False)
     raw = _call_vlm(
         [original_data_url, grid_data_url],
-        json.dumps(summary, ensure_ascii=False),
+        summary_payload,
         (width, height),
         grid_meta=grid_meta,
     )

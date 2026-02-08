@@ -29,7 +29,7 @@ def health():
 
 @app.post("/api/audit", response_model=AuditStatusResponse)
 def create_audit(request: AuditRequest):
-    return start_audit(request.url)
+    return start_audit(request.url, checklist=request.checklist)
 
 
 @app.get("/api/audit/{task_id}", response_model=AuditStatusResponse)
