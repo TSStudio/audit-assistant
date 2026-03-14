@@ -119,104 +119,192 @@
             </div>
         </div>
 
-        <div class="card">
+        <div class="card" ref="resultCard">
             <div class="card-head">
                 <div>
                     <p class="eyebrow">步骤 2</p>
-                    <h2>审计结果</h2>
+                    <h2>审计结果与批注</h2>
                     <p class="muted">
-                        左侧为页面截图，右侧为问题列表。悬停问题时，截图对应区域高亮。
+                        支持驳回 AI 建议、手动画框并填写批注，最后导出 PDF。
                     </p>
                 </div>
-                <span class="pill">{{ issues.length }} 个问题</span>
+                <span class="pill">{{ displayIssues.length }} 个问题</span>
             </div>
 
-            <div v-if="!screenshotSrc && issues.length === 0" class="empty">
+            <div class="review-toolbar" v-if="screenshotSrc || displayIssues.length">
+                <button class="ghost" :disabled="!customIssues.length" @click="clearCustomIssues">
+                    清空手工批注
+                </button>
+            </div>
+
+            <div class="summary-bar" v-if="displayIssues.length">
+                <span>已保留 {{ decisionStats.kept }}</span>
+                <span>已驳回 {{ decisionStats.rejected }}</span>
+            </div>
+
+            <div v-if="!screenshotSrc && displayIssues.length === 0" class="empty">
                 <p>尚未生成问题列表。提交 URL 并等待审计完成即可查看结果。</p>
             </div>
 
-            <div v-else class="result-grid">
-                <div class="screenshot-pane">
-                    <div v-if="screenshotSrc" class="screenshot-wrapper">
-                        <img
-                            ref="shotImg"
-                            class="screenshot"
-                            :src="screenshotSrc"
-                            alt="页面截图"
-                            @load="onShotLoad"
-                        />
-                        <div
-                            v-for="issue in issues"
-                            :key="`box-${issue.id}`"
-                            v-show="boxForIssue(issue)"
-                            class="overlay-box"
-                            :class="{ active: hoverIssueId === issue.id }"
-                            :style="boxStyle(issue)"
-                        ></div>
-                    </div>
-                    <div v-else class="empty">暂无截图。</div>
+            <div
+                v-else
+                ref="exportContainer"
+                class="export-container"
+                :class="{ 'export-mode': exportMode }"
+            >
+                <div class="export-head">
+                    <h3>智慧审查报告</h3>
+                    <p>URL：{{ urlInput || "(未填写)" }}</p>
+                    <p>导出时间：{{ new Date().toLocaleString() }}</p>
                 </div>
 
-                <div
-                    class="issues-pane"
-                    :style="{ height: `${issuesPaneHeight}px` }"
-                >
-                    <template v-if="positionedIssues.length">
+                <div class="result-grid">
+                    <div class="screenshot-pane">
                         <div
-                            v-for="item in positionedIssues"
-                            :key="item.issue.id"
-                            class="issue-item positioned"
-                            :class="{ active: hoverIssueId === item.issue.id }"
-                            :style="{ top: `${item.top}px` }"
-                            :ref="(el) => setIssueRef(item.issue.id, el)"
-                            @mouseenter="hoverIssueId = item.issue.id"
-                            @mouseleave="hoverIssueId = null"
+                            v-if="screenshotSrc"
+                            ref="shotWrapper"
+                            class="screenshot-wrapper"
+                            :class="{ drawing: drawingMode }"
+                            @mousedown="beginDraw"
+                            @mousemove="moveDraw"
+                            @mouseup="endDraw"
+                            @mouseleave="cancelDraw"
                         >
-                            <div class="issue-top">
-                                <span
-                                    class="badge"
-                                    :class="`sev-${item.issue.severity}`"
-                                    >{{ item.issue.severity }}</span
-                                >
-                                <span class="type">{{ item.issue.type }}</span>
-                                <span
-                                    v-if="item.issue.confidence"
-                                    class="confidence"
-                                    >置信度
-                                    {{ item.issue.confidence.toFixed(2) }}</span
-                                >
-                            </div>
-                            <p v-if="item.issue.evidence?.quote" class="quote">
-                                “{{ item.issue.evidence.quote }}”
-                            </p>
-                            <p
-                                v-if="item.issue.recommendation"
-                                class="recommend"
-                            >
-                                建议：{{ item.issue.recommendation }}
-                            </p>
-                            <div class="meta">
-                                <span v-if="item.issue.evidence?.text_block_id"
-                                    >文本段落：{{
-                                        item.issue.evidence.text_block_id
-                                    }}</span
-                                >
-                                <span v-if="item.issue.evidence?.image_id"
-                                    >图片：{{
-                                        item.issue.evidence.image_id
-                                    }}</span
-                                >
-                                <span v-if="item.issue.evidence?.link_id"
-                                    >链接：{{
-                                        item.issue.evidence.link_id
-                                    }}</span
-                                >
-                            </div>
+                            <img
+                                ref="shotImg"
+                                class="screenshot"
+                                :src="screenshotSrc"
+                                crossorigin="anonymous"
+                                alt="页面截图"
+                                @load="onShotLoad"
+                            />
+                            <div
+                                v-for="issue in issuesWithBox"
+                                :key="`box-${issue.id}`"
+                                v-show="boxForIssue(issue)"
+                                class="overlay-box"
+                                :class="{
+                                    active: hoverIssueId === issue.id,
+                                    manual: issue.manual,
+                                    rejected: isRejected(issue.id),
+                                }"
+                                :style="boxStyle(issue)"
+                            ></div>
+                            <div
+                                v-if="drawingPreview"
+                                class="overlay-box preview"
+                                :style="drawingPreview"
+                            ></div>
                         </div>
-                    </template>
-                    <div v-else class="empty">暂无问题。</div>
+                        <div v-else class="empty">暂无截图。</div>
+                    </div>
+
+                    <div class="issues-pane" :style="{ height: `${issuesPaneRenderHeight}px` }">
+                        <template v-if="positionedIssues.length">
+                            <div
+                                v-for="item in positionedIssues"
+                                :key="item.issue.id"
+                                class="issue-item positioned"
+                                :class="{
+                                    active: hoverIssueId === item.issue.id,
+                                    rejected: isRejected(item.issue.id),
+                                    manual: item.issue.manual,
+                                }"
+                                :style="{ top: `${item.top}px` }"
+                                :ref="(el) => setIssueRef(item.issue.id, el)"
+                                @mouseenter="hoverIssueId = item.issue.id"
+                                @mouseleave="hoverIssueId = null"
+                            >
+                                <div class="issue-top">
+                                    <span class="badge" :class="`sev-${item.issue.severity || 'info'}`">
+                                        {{ item.issue.severity || "info" }}
+                                    </span>
+                                    <span class="type">{{ item.issue.type || "custom" }}</span>
+                                    <span v-if="item.issue.confidence" class="confidence">
+                                        置信度 {{ Number(item.issue.confidence).toFixed(2) }}
+                                    </span>
+                                    <span class="decision" :class="isRejected(item.issue.id) ? 'decision-rejected' : 'decision-kept'">
+                                        {{ isRejected(item.issue.id) ? "已驳回" : "已保留" }}
+                                    </span>
+                                </div>
+
+                                <div class="issue-controls">
+                                    <button
+                                        class="mini-btn reject"
+                                        v-if="!isRejected(item.issue.id)"
+                                        @click="rejectIssue(item.issue.id)"
+                                        title="驳回该建议"
+                                    >
+                                        X 驳回
+                                    </button>
+                                    <button
+                                        class="mini-btn"
+                                        v-else
+                                        @click="undoReject(item.issue.id)"
+                                    >
+                                        撤销
+                                    </button>
+                                    <button
+                                        class="mini-btn danger"
+                                        v-if="item.issue.manual"
+                                        @click="removeCustomIssue(item.issue.id)"
+                                    >
+                                        删除批注
+                                    </button>
+                                </div>
+
+                                <p v-if="item.issue.evidence?.quote" class="quote">
+                                    “{{ item.issue.evidence.quote }}”
+                                </p>
+                                <p v-if="item.issue.recommendation" class="recommend">
+                                    建议：{{ item.issue.recommendation }}
+                                </p>
+
+                                <template v-if="item.issue.manual">
+                                    <label class="annotation-label">批注</label>
+                                    <textarea
+                                        class="annotation-input"
+                                        :value="noteForIssue(item.issue.id)"
+                                        placeholder="输入你的审校意见..."
+                                        @input="updateNote(item.issue.id, $event.target.value)"
+                                    ></textarea>
+                                </template>
+
+                                <div class="meta">
+                                    <span v-if="item.issue.evidence?.text_block_id">
+                                        文本段落：{{ item.issue.evidence.text_block_id }}
+                                    </span>
+                                    <span v-if="item.issue.evidence?.image_id">
+                                        图片：{{ item.issue.evidence.image_id }}
+                                    </span>
+                                    <span v-if="item.issue.evidence?.link_id">
+                                        链接：{{ item.issue.evidence.link_id }}
+                                    </span>
+                                    <span v-if="item.issue.manual">手工批注</span>
+                                </div>
+                            </div>
+                        </template>
+                        <div v-else class="empty">暂无问题。</div>
+                    </div>
                 </div>
             </div>
+        </div>
+        <div class="floating-actions" v-if="screenshotSrc || displayIssues.length">
+            <button
+                class="fab fab-draw"
+                :class="{ active: drawingMode }"
+                :disabled="!screenshotSrc"
+                @click="toggleDrawingMode"
+            >
+                {{ drawingMode ? "结束画框" : "新增批注画框" }}
+            </button>
+            <button
+                class="fab fab-export"
+                :disabled="exportingPdf || (!screenshotSrc && !displayIssues.length)"
+                @click="exportPdf"
+            >
+                {{ exportingPdf ? "导出中..." : "导出 PDF" }}
+            </button>
         </div>
     </section>
 </template>
@@ -235,19 +323,34 @@ const taskId = ref("");
 const status = ref("");
 const message = ref("");
 const issues = ref([]);
+const customIssues = ref([]);
+const decisionMap = ref({});
+const noteMap = ref({});
 const bundle = ref(null);
 const targetProgress = ref(0);
 const displayProgress = ref(0);
 const loading = ref(false);
+const exportingPdf = ref(false);
+const exportMode = ref(false);
 const error = ref("");
 let pollTimer = null;
 let easeTimer = null;
 const hoverIssueId = ref(null);
 const taskHistory = ref([]);
 const historyKey = "audit_task_history";
+
 const shotImg = ref(null);
+const shotWrapper = ref(null);
+const exportContainer = ref(null);
+const resultCard = ref(null);
 const shotNatural = ref({ w: 1, h: 1 });
 const shotDisplay = ref({ w: 1, h: 1 });
+
+const drawingMode = ref(false);
+const isDrawing = ref(false);
+const drawStart = ref(null);
+const drawCurrent = ref(null);
+
 const minIssueGap = 14;
 const issueHeights = ref({});
 
@@ -269,8 +372,9 @@ const statusClass = computed(() => {
 const progressWidth = computed(() => {
     if (status.value === "failed") return "100%";
     if (status.value === "completed") return "100%";
-    if (displayProgress.value)
+    if (displayProgress.value) {
         return `${Math.min(displayProgress.value, 100)}%`;
+    }
     return "0%";
 });
 
@@ -287,8 +391,60 @@ const screenshotSrc = computed(() => {
     return `${apiOrigin.value}/api/captures/${name}`;
 });
 
+const displayIssues = computed(() => {
+    return [...issues.value, ...customIssues.value];
+});
+
+const issuesForList = computed(() => {
+    if (!exportMode.value) return displayIssues.value;
+    return displayIssues.value.filter((issue) => !isRejected(issue.id));
+});
+
+const issuesWithBox = computed(() => {
+    return displayIssues.value.filter(
+        (issue) => boxForIssue(issue) && !isRejected(issue.id),
+    );
+});
+
 const issuesPaneHeight = computed(() => {
-    return Math.max(shotDisplay.value.h || 400, 400);
+    return Math.max(shotDisplay.value.h || 420, 420);
+});
+
+const positionedBottom = computed(() => {
+    if (!positionedIssues.value.length) return 0;
+    return positionedIssues.value.reduce((maxBottom, item) => {
+        const bottom = item.top + item.height;
+        return Math.max(maxBottom, bottom);
+    }, 0);
+});
+
+const issuesPaneRenderHeight = computed(() => {
+    if (!exportMode.value) return issuesPaneHeight.value;
+    return Math.max(issuesPaneHeight.value, positionedBottom.value + 24);
+});
+
+const drawingPreview = computed(() => {
+    if (!drawStart.value || !drawCurrent.value) return null;
+    const x = Math.min(drawStart.value.x, drawCurrent.value.x);
+    const y = Math.min(drawStart.value.y, drawCurrent.value.y);
+    const width = Math.abs(drawCurrent.value.x - drawStart.value.x);
+    const height = Math.abs(drawCurrent.value.y - drawStart.value.y);
+    return {
+        left: `${x}px`,
+        top: `${y}px`,
+        width: `${width}px`,
+        height: `${height}px`,
+    };
+});
+
+const decisionStats = computed(() => {
+    let kept = 0;
+    let rejected = 0;
+    for (const issue of displayIssues.value) {
+        if (isRejected(issue.id)) rejected += 1;
+        else kept += 1;
+    }
+    return { kept, rejected };
 });
 
 function normalizeIssues(rawIssues) {
@@ -302,6 +458,7 @@ function normalizeIssues(rawIssues) {
                 : {};
         if (evidence.text_block_id == null) delete evidence.text_block_id;
         normalized.evidence = evidence;
+        normalized.manual = false;
         return normalized;
     });
 }
@@ -319,6 +476,9 @@ function resetState() {
     status.value = "";
     message.value = "";
     issues.value = [];
+    customIssues.value = [];
+    decisionMap.value = {};
+    noteMap.value = {};
     bundle.value = null;
     targetProgress.value = 0;
     displayProgress.value = 0;
@@ -327,6 +487,10 @@ function resetState() {
     shotDisplay.value = { w: 1, h: 1 };
     hoverIssueId.value = null;
     issueHeights.value = {};
+    drawingMode.value = false;
+    isDrawing.value = false;
+    drawStart.value = null;
+    drawCurrent.value = null;
 }
 
 function stopEaseTimer() {
@@ -339,7 +503,6 @@ function stopEaseTimer() {
 function startEaseTimer() {
     stopEaseTimer();
     easeTimer = setInterval(() => {
-        // If target is 100, snap to completion
         if (targetProgress.value >= 100) {
             displayProgress.value = 100;
             stopEaseTimer();
@@ -413,7 +576,7 @@ function parseChecklist(value) {
 function formatChecklist(list) {
     if (!Array.isArray(list) || list.length === 0) return "";
     const preview = list.slice(0, 3).join("、");
-    return list.length > 3 ? `${preview}…` : preview;
+    return list.length > 3 ? `${preview}...` : preview;
 }
 
 async function startAudit() {
@@ -552,7 +715,19 @@ function rerunCurrent() {
     startAudit();
 }
 
-watch(issues, () => {
+watch(
+    issues,
+    (list) => {
+        const nextDecision = { ...decisionMap.value };
+        for (const issue of list || []) {
+            if (nextDecision[issue.id] == null) nextDecision[issue.id] = false;
+        }
+        decisionMap.value = nextDecision;
+    },
+    { immediate: true },
+);
+
+watch(displayIssues, () => {
     issueHeights.value = {};
     nextTick(() => {
         // allow refs to re-register
@@ -563,7 +738,6 @@ function setIssueRef(id, el) {
     if (!el) return;
     const height = el.getBoundingClientRect().height;
     const prev = issueHeights.value?.[id];
-    // Avoid reactive churn that can cause update loops
     if (prev !== undefined && Math.abs(prev - height) < 0.5) return;
     issueHeights.value = {
         ...issueHeights.value,
@@ -575,6 +749,148 @@ function onShotLoad(event) {
     const img = event.target;
     shotNatural.value = { w: img.naturalWidth || 1, h: img.naturalHeight || 1 };
     shotDisplay.value = { w: img.clientWidth || 1, h: img.clientHeight || 1 };
+}
+
+function isRejected(issueId) {
+    return !!decisionMap.value?.[issueId];
+}
+
+function rejectIssue(issueId) {
+    decisionMap.value = {
+        ...decisionMap.value,
+        [issueId]: true,
+    };
+}
+
+function undoReject(issueId) {
+    decisionMap.value = {
+        ...decisionMap.value,
+        [issueId]: false,
+    };
+}
+
+function noteForIssue(issueId) {
+    return noteMap.value?.[issueId] || "";
+}
+
+function updateNote(issueId, text) {
+    noteMap.value = {
+        ...noteMap.value,
+        [issueId]: text,
+    };
+}
+
+function removeCustomIssue(issueId) {
+    customIssues.value = customIssues.value.filter((item) => item.id !== issueId);
+    const nextDecisions = { ...decisionMap.value };
+    const nextNotes = { ...noteMap.value };
+    delete nextDecisions[issueId];
+    delete nextNotes[issueId];
+    decisionMap.value = nextDecisions;
+    noteMap.value = nextNotes;
+}
+
+function clearCustomIssues() {
+    const ids = new Set(customIssues.value.map((item) => item.id));
+    customIssues.value = [];
+    const nextDecisions = { ...decisionMap.value };
+    const nextNotes = { ...noteMap.value };
+    for (const id of ids) {
+        delete nextDecisions[id];
+        delete nextNotes[id];
+    }
+    decisionMap.value = nextDecisions;
+    noteMap.value = nextNotes;
+}
+
+function toggleDrawingMode() {
+    drawingMode.value = !drawingMode.value;
+    isDrawing.value = false;
+    drawStart.value = null;
+    drawCurrent.value = null;
+}
+
+function localPointFromMouse(event) {
+    if (!shotImg.value) return null;
+    const rect = shotImg.value.getBoundingClientRect();
+    if (!rect.width || !rect.height) return null;
+    const x = Math.max(0, Math.min(event.clientX - rect.left, rect.width));
+    const y = Math.max(0, Math.min(event.clientY - rect.top, rect.height));
+    return { x, y };
+}
+
+function beginDraw(event) {
+    if (!drawingMode.value || !shotImg.value) return;
+    if (shotNatural.value.w <= 1 || shotDisplay.value.w <= 1) return;
+    event.preventDefault();
+    const point = localPointFromMouse(event);
+    if (!point) return;
+    isDrawing.value = true;
+    drawStart.value = point;
+    drawCurrent.value = point;
+}
+
+function moveDraw(event) {
+    if (!isDrawing.value) return;
+    event.preventDefault();
+    const point = localPointFromMouse(event);
+    if (!point) return;
+    drawCurrent.value = point;
+}
+
+function appendManualIssue(box) {
+    const scaleX = shotNatural.value.w / (shotDisplay.value.w || 1);
+    const scaleY = shotNatural.value.h / (shotDisplay.value.h || 1);
+    const bbox = {
+        x: Math.round(box.x * scaleX),
+        y: Math.round(box.y * scaleY),
+        width: Math.max(1, Math.round(box.width * scaleX)),
+        height: Math.max(1, Math.round(box.height * scaleY)),
+    };
+    const id = `manual-${Date.now()}-${Math.random().toString(16).slice(2, 6)}`;
+    const issue = {
+        id,
+        type: "manual_note",
+        severity: "info",
+        evidence: {
+            bbox,
+            screenshot_id: bundle.value?.screenshots?.[0]?.id,
+            quote: "",
+        },
+        recommendation: "",
+        manual: true,
+    };
+    customIssues.value = [...customIssues.value, issue];
+    undoReject(id);
+    updateNote(id, "");
+    hoverIssueId.value = id;
+}
+
+function endDraw(event) {
+    if (event) event.preventDefault();
+    if (!isDrawing.value || !drawStart.value || !drawCurrent.value) {
+        isDrawing.value = false;
+        drawStart.value = null;
+        drawCurrent.value = null;
+        return;
+    }
+    const x = Math.min(drawStart.value.x, drawCurrent.value.x);
+    const y = Math.min(drawStart.value.y, drawCurrent.value.y);
+    const width = Math.abs(drawCurrent.value.x - drawStart.value.x);
+    const height = Math.abs(drawCurrent.value.y - drawStart.value.y);
+
+    if (width >= 4 && height >= 4) {
+        appendManualIssue({ x, y, width, height });
+    }
+
+    isDrawing.value = false;
+    drawStart.value = null;
+    drawCurrent.value = null;
+}
+
+function cancelDraw() {
+    if (!isDrawing.value) return;
+    endDraw();
 }
 
 loadHistory();
@@ -597,13 +913,13 @@ function boxStyle(issue) {
 }
 
 const positionedIssues = computed(() => {
-    if (!issues.value?.length) return [];
+    if (!issuesForList.value?.length) return [];
     const scaleY = shotDisplay.value.h / (shotNatural.value.h || 1);
-    const withPos = issues.value
+    const withPos = issuesForList.value
         .map((issue) => {
             const bbox = boxForIssue(issue);
             const y = bbox ? bbox.y * scaleY : null;
-            const height = issueHeights.value?.[issue.id] || 120;
+            const height = issueHeights.value?.[issue.id] || 205;
             return { issue, y, height };
         })
         .sort((a, b) => {
@@ -616,18 +932,103 @@ const positionedIssues = computed(() => {
     let cursor = 0;
     const placed = [];
     for (const item of withPos) {
-        let top;
-        if (item.y === null) {
-            top = cursor;
-        } else {
-            top = Math.max(item.y, cursor);
-        }
+        const top = item.y === null ? cursor : Math.max(item.y, cursor);
         placed.push({ issue: item.issue, top, height: item.height });
         cursor = top + item.height + minIssueGap;
     }
 
     return placed;
 });
+
+async function exportPdf() {
+    if (exportingPdf.value) return;
+    if (!resultCard.value) {
+        error.value = "未找到可导出的内容区域";
+        return;
+    }
+
+    exportingPdf.value = true;
+    error.value = "";
+    exportMode.value = true;
+    await nextTick();
+
+        try {
+            const html2canvas = await loadHtml2Canvas();
+            const jsPDF = await loadJsPdf();
+
+            const canvas = await html2canvas(resultCard.value, {
+                scale: 2,
+                useCORS: true,
+                allowTaint: false,
+                backgroundColor: "#0b1021",
+                windowWidth: document.documentElement.scrollWidth,
+                windowHeight: document.documentElement.scrollHeight,
+                scrollX: 0,
+                scrollY: -window.scrollY,
+            });
+
+            const imageData = canvas.toDataURL("image/png");
+            const pdf = new jsPDF("p", "mm", "a4");
+            const pageWidth = pdf.internal.pageSize.getWidth();
+            const pageHeight = pdf.internal.pageSize.getHeight();
+            const margin = 6;
+            const imgWidth = pageWidth - margin * 2;
+            const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+            let remainHeight = imgHeight;
+            let y = margin;
+
+            pdf.addImage(imageData, "PNG", margin, y, imgWidth, imgHeight);
+            remainHeight -= pageHeight - margin * 2;
+
+            while (remainHeight > 0) {
+                pdf.addPage();
+                y = margin - (imgHeight - remainHeight);
+                pdf.addImage(imageData, "PNG", margin, y, imgWidth, imgHeight);
+                remainHeight -= pageHeight - margin * 2;
+            }
+
+            pdf.save(`audit-report-${Date.now()}.pdf`);
+    } catch (e) {
+        error.value = e?.message || "导出 PDF 失败";
+    } finally {
+        exportMode.value = false;
+        exportingPdf.value = false;
+    }
+}
+
+    async function loadScriptOnce(url) {
+        if (typeof window === "undefined") return;
+        const exists = Array.from(document.scripts).some((s) => s.src === url);
+        if (exists) return;
+        await new Promise((resolve, reject) => {
+            const script = document.createElement("script");
+            script.src = url;
+            script.async = true;
+            script.onload = resolve;
+            script.onerror = () => reject(new Error(`加载脚本失败: ${url}`));
+            document.head.appendChild(script);
+        });
+    }
+
+    async function loadHtml2Canvas() {
+        if (window.html2canvas) return window.html2canvas;
+        await loadScriptOnce("https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js");
+        if (!window.html2canvas) {
+            throw new Error("html2canvas 加载失败");
+        }
+        return window.html2canvas;
+    }
+
+    async function loadJsPdf() {
+        const hasJsPdf = window.jspdf && window.jspdf.jsPDF;
+        if (hasJsPdf) return window.jspdf.jsPDF;
+        await loadScriptOnce("https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js");
+        if (!window.jspdf || !window.jspdf.jsPDF) {
+            throw new Error("jsPDF 加载失败");
+        }
+        return window.jspdf.jsPDF;
+    }
 </script>
 
 <style scoped>
@@ -635,6 +1036,7 @@ const positionedIssues = computed(() => {
     display: grid;
     grid-template-columns: 1fr;
     gap: 18px;
+    padding-bottom: 108px;
 }
 
 .card {
@@ -664,6 +1066,11 @@ h2 {
     margin: 4px 0 4px;
     font-size: 20px;
     color: #f9fafb;
+}
+
+h3 {
+    margin: 0;
+    font-size: 16px;
 }
 
 .muted {
@@ -878,6 +1285,12 @@ button.primary:disabled {
     cursor: pointer;
 }
 
+.ghost.active {
+    border-color: rgba(52, 211, 153, 0.8);
+    color: #34d399;
+    background: rgba(52, 211, 153, 0.12);
+}
+
 .ghost.danger {
     color: #f87171;
     border-color: rgba(248, 113, 113, 0.4);
@@ -890,9 +1303,138 @@ button.primary:disabled {
     color: #9ca3af;
 }
 
+.review-toolbar {
+    margin-top: 14px;
+    margin-bottom: 10px;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.floating-actions {
+    position: fixed;
+    left: 50%;
+    bottom: 18px;
+    transform: translateX(-50%);
+    z-index: 90;
+    display: flex;
+    gap: 12px;
+    padding: 9px;
+    border-radius: 999px;
+    border: 1px solid rgba(203, 213, 225, 0.22);
+    background:
+        linear-gradient(
+            135deg,
+            rgba(2, 6, 23, 0.9) 0%,
+            rgba(15, 23, 42, 0.88) 45%,
+            rgba(30, 41, 59, 0.86) 100%
+        ),
+        radial-gradient(
+            circle at 10% 0%,
+            rgba(255, 255, 255, 0.22),
+            transparent 45%
+        );
+    box-shadow:
+        0 20px 44px rgba(2, 6, 23, 0.55),
+        inset 0 1px 0 rgba(255, 255, 255, 0.18);
+    backdrop-filter: blur(14px) saturate(115%);
+}
+
+.fab {
+    position: relative;
+    overflow: hidden;
+    border: none;
+    border-radius: 999px;
+    padding: 11px 18px;
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+    cursor: pointer;
+    color: #f8fafc;
+    transition:
+        transform 0.25s ease,
+        box-shadow 0.25s ease,
+        opacity 0.2s ease,
+        filter 0.25s ease;
+}
+
+.fab::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+        105deg,
+        rgba(255, 255, 255, 0.24) 0%,
+        rgba(255, 255, 255, 0.07) 42%,
+        rgba(255, 255, 255, 0) 70%
+    );
+    pointer-events: none;
+}
+
+.fab:hover {
+    transform: translateY(-2px);
+    filter: saturate(115%);
+}
+
+.fab:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+.fab-draw {
+    background: linear-gradient(135deg, #0f766e 0%, #0ea5a8 48%, #22d3ee 100%);
+    box-shadow:
+        0 10px 22px rgba(15, 118, 110, 0.42),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.2);
+}
+
+.fab-draw.active {
+    background: linear-gradient(135deg, #047857 0%, #10b981 55%, #34d399 100%);
+    box-shadow:
+        0 12px 24px rgba(4, 120, 87, 0.46),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.24);
+}
+
+.fab-export {
+    background: linear-gradient(135deg, #b45309 0%, #d97706 45%, #f59e0b 100%);
+    box-shadow:
+        0 10px 22px rgba(180, 83, 9, 0.44),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.22);
+}
+
+.summary-bar {
+    margin-bottom: 10px;
+    display: flex;
+    gap: 14px;
+    color: #c7d2fe;
+    font-size: 13px;
+}
+
+.export-container {
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    background: rgba(2, 6, 23, 0.4);
+    padding: 12px;
+}
+
+.export-head {
+    margin-bottom: 10px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(15, 23, 42, 0.65);
+}
+
+.export-head p {
+    margin: 4px 0 0;
+    color: #cbd5e1;
+    font-size: 12px;
+    word-break: break-all;
+}
+
 .result-grid {
     display: grid;
-    grid-template-columns: 1.3fr 1fr;
+    grid-template-columns: 1.25fr 1fr;
     gap: 14px;
     min-height: 360px;
 }
@@ -909,13 +1451,17 @@ button.primary:disabled {
 .screenshot-wrapper {
     position: relative;
     width: 100%;
-    height: 100%;
+    user-select: none;
+}
+
+.screenshot-wrapper.drawing {
+    cursor: crosshair;
 }
 
 .screenshot {
     display: block;
     width: 100%;
-    height: 100%;
+    height: auto;
     object-fit: contain;
     background: #0b1021;
 }
@@ -935,6 +1481,22 @@ button.primary:disabled {
     border-color: rgba(99, 102, 241, 1);
     background: rgba(99, 102, 241, 0.3);
     box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.35);
+}
+
+.overlay-box.manual {
+    border-color: rgba(16, 185, 129, 0.95);
+    background: rgba(16, 185, 129, 0.15);
+}
+
+.overlay-box.rejected {
+    border-color: rgba(248, 113, 113, 0.7);
+    background: rgba(248, 113, 113, 0.16);
+}
+
+.overlay-box.preview {
+    border-style: dashed;
+    border-color: rgba(16, 185, 129, 0.95);
+    background: rgba(16, 185, 129, 0.18);
 }
 
 .issues-pane {
@@ -959,14 +1521,6 @@ button.primary:disabled {
     box-shadow: 0 8px 18px rgba(0, 0, 0, 0.35);
 }
 
-.issue-list {
-    list-style: none;
-    padding: 0;
-    margin: 12px 0 0;
-    display: grid;
-    gap: 10px;
-}
-
 .issue-item {
     padding: 12px 14px;
     border-radius: 12px;
@@ -974,11 +1528,53 @@ button.primary:disabled {
     border: 1px solid rgba(255, 255, 255, 0.06);
 }
 
+.issue-item.rejected {
+    opacity: 0.7;
+    border-color: rgba(248, 113, 113, 0.45);
+}
+
+.issue-item.manual {
+    border-color: rgba(52, 211, 153, 0.45);
+}
+
 .issue-top {
     display: flex;
     align-items: center;
     gap: 8px;
     flex-wrap: wrap;
+}
+
+.issue-controls {
+    margin-top: 8px;
+    margin-bottom: 8px;
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.mini-btn {
+    border-radius: 999px;
+    border: 1px solid rgba(148, 163, 184, 0.35);
+    background: rgba(15, 23, 42, 0.8);
+    color: #e2e8f0;
+    padding: 4px 10px;
+    font-size: 12px;
+    cursor: pointer;
+}
+
+.mini-btn.active {
+    border-color: rgba(16, 185, 129, 0.85);
+    color: #6ee7b7;
+}
+
+.mini-btn.reject.active {
+    border-color: rgba(248, 113, 113, 0.8);
+    color: #fda4af;
+}
+
+.mini-btn.danger {
+    border-color: rgba(248, 113, 113, 0.45);
+    color: #f87171;
 }
 
 .badge {
@@ -1014,6 +1610,29 @@ button.primary:disabled {
     font-size: 13px;
 }
 
+.decision {
+    margin-left: auto;
+    padding: 4px 8px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.decision-pending {
+    background: rgba(59, 130, 246, 0.18);
+    color: #93c5fd;
+}
+
+.decision-accepted {
+    background: rgba(16, 185, 129, 0.2);
+    color: #6ee7b7;
+}
+
+.decision-rejected {
+    background: rgba(248, 113, 113, 0.2);
+    color: #fda4af;
+}
+
 .quote {
     margin: 8px 0 4px;
     color: #cbd5e1;
@@ -1025,12 +1644,36 @@ button.primary:disabled {
     color: #c7d2fe;
 }
 
+.annotation-label {
+    display: block;
+    margin: 8px 0 4px;
+    font-size: 12px;
+    color: #a5b4fc;
+}
+
+.annotation-input {
+    width: 100%;
+    min-height: 58px;
+    border-radius: 8px;
+    border: 1px solid rgba(148, 163, 184, 0.35);
+    background: rgba(15, 23, 42, 0.65);
+    color: #f8fafc;
+    padding: 8px;
+    resize: vertical;
+    font-size: 13px;
+}
+
 .meta {
+    margin-top: 8px;
     display: flex;
     gap: 10px;
     flex-wrap: wrap;
     color: #9ca3af;
     font-size: 12px;
+}
+
+.export-mode .issues-pane {
+    overflow: visible;
 }
 
 @media (max-width: 720px) {
@@ -1057,6 +1700,27 @@ button.primary:disabled {
 
     .task-actions {
         justify-content: flex-start;
+    }
+
+    .decision {
+        margin-left: 0;
+    }
+
+    .floating-actions {
+        width: calc(100vw - 24px);
+        left: 12px;
+        bottom: 12px;
+        transform: none;
+        justify-content: space-between;
+        border-radius: 14px;
+        padding: 8px;
+    }
+
+    .fab {
+        flex: 1;
+        text-align: center;
+        padding: 10px 12px;
+        font-size: 12px;
     }
 }
 </style>

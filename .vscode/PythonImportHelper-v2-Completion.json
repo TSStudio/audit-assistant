@@ -1,0 +1,1245 @@
+[
+    {
+        "label": "json",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "json",
+        "description": "json",
+        "detail": "json",
+        "documentation": {}
+    },
+    {
+        "label": "os",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "os",
+        "description": "os",
+        "detail": "os",
+        "documentation": {}
+    },
+    {
+        "label": "sqlite3",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "sqlite3",
+        "description": "sqlite3",
+        "detail": "sqlite3",
+        "documentation": {}
+    },
+    {
+        "label": "time",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "time",
+        "description": "time",
+        "detail": "time",
+        "documentation": {}
+    },
+    {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "Optional",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "Tuple",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "List",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "Optional",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "Tuple",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "Any",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "Dict",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "Dict",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "List",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "Optional",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "Tuple",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "List",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "Optional",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "Optional",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "List",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "Optional",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "Any",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "Optional",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "List",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "Optional",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "Tuple",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "List",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "uuid4",
+        "importPath": "uuid",
+        "description": "uuid",
+        "isExtraImport": true,
+        "detail": "uuid",
+        "documentation": {}
+    },
+    {
+        "label": "uuid4",
+        "importPath": "uuid",
+        "description": "uuid",
+        "isExtraImport": true,
+        "detail": "uuid",
+        "documentation": {}
+    },
+    {
+        "label": "uuid4",
+        "importPath": "uuid",
+        "description": "uuid",
+        "isExtraImport": true,
+        "detail": "uuid",
+        "documentation": {}
+    },
+    {
+        "label": "uuid4",
+        "importPath": "uuid",
+        "description": "uuid",
+        "isExtraImport": true,
+        "detail": "uuid",
+        "documentation": {}
+    },
+    {
+        "label": "uuid4",
+        "importPath": "uuid",
+        "description": "uuid",
+        "isExtraImport": true,
+        "detail": "uuid",
+        "documentation": {}
+    },
+    {
+        "label": "BeautifulSoup",
+        "importPath": "bs4",
+        "description": "bs4",
+        "isExtraImport": true,
+        "detail": "bs4",
+        "documentation": {}
+    },
+    {
+        "label": "TimeoutError",
+        "importPath": "playwright.sync_api",
+        "description": "playwright.sync_api",
+        "isExtraImport": true,
+        "detail": "playwright.sync_api",
+        "documentation": {}
+    },
+    {
+        "label": "sync_playwright",
+        "importPath": "playwright.sync_api",
+        "description": "playwright.sync_api",
+        "isExtraImport": true,
+        "detail": "playwright.sync_api",
+        "documentation": {}
+    },
+    {
+        "label": "argparse",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "argparse",
+        "description": "argparse",
+        "detail": "argparse",
+        "documentation": {}
+    },
+    {
+        "label": "sys",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "sys",
+        "description": "sys",
+        "detail": "sys",
+        "documentation": {}
+    },
+    {
+        "label": "base64",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "base64",
+        "description": "base64",
+        "detail": "base64",
+        "documentation": {}
+    },
+    {
+        "label": "BytesIO",
+        "importPath": "io",
+        "description": "io",
+        "isExtraImport": true,
+        "detail": "io",
+        "documentation": {}
+    },
+    {
+        "label": "load_dotenv",
+        "importPath": "dotenv",
+        "description": "dotenv",
+        "isExtraImport": true,
+        "detail": "dotenv",
+        "documentation": {}
+    },
+    {
+        "label": "load_dotenv",
+        "importPath": "dotenv",
+        "description": "dotenv",
+        "isExtraImport": true,
+        "detail": "dotenv",
+        "documentation": {}
+    },
+    {
+        "label": "OpenAI",
+        "importPath": "openai",
+        "description": "openai",
+        "isExtraImport": true,
+        "detail": "openai",
+        "documentation": {}
+    },
+    {
+        "label": "OpenAI",
+        "importPath": "openai",
+        "description": "openai",
+        "isExtraImport": true,
+        "detail": "openai",
+        "documentation": {}
+    },
+    {
+        "label": "Image",
+        "importPath": "PIL",
+        "description": "PIL",
+        "isExtraImport": true,
+        "detail": "PIL",
+        "documentation": {}
+    },
+    {
+        "label": "ImageDraw",
+        "importPath": "PIL",
+        "description": "PIL",
+        "isExtraImport": true,
+        "detail": "PIL",
+        "documentation": {}
+    },
+    {
+        "label": "ImageFont",
+        "importPath": "PIL",
+        "description": "PIL",
+        "isExtraImport": true,
+        "detail": "PIL",
+        "documentation": {}
+    },
+    {
+        "label": "Image",
+        "importPath": "PIL",
+        "description": "PIL",
+        "isExtraImport": true,
+        "detail": "PIL",
+        "documentation": {}
+    },
+    {
+        "label": "Image",
+        "importPath": "PIL",
+        "description": "PIL",
+        "isExtraImport": true,
+        "detail": "PIL",
+        "documentation": {}
+    },
+    {
+        "label": "FastAPI",
+        "importPath": "fastapi",
+        "description": "fastapi",
+        "isExtraImport": true,
+        "detail": "fastapi",
+        "documentation": {}
+    },
+    {
+        "label": "HTTPException",
+        "importPath": "fastapi",
+        "description": "fastapi",
+        "isExtraImport": true,
+        "detail": "fastapi",
+        "documentation": {}
+    },
+    {
+        "label": "StaticFiles",
+        "importPath": "fastapi.staticfiles",
+        "description": "fastapi.staticfiles",
+        "isExtraImport": true,
+        "detail": "fastapi.staticfiles",
+        "documentation": {}
+    },
+    {
+        "label": "CORSMiddleware",
+        "importPath": "fastapi.middleware.cors",
+        "description": "fastapi.middleware.cors",
+        "isExtraImport": true,
+        "detail": "fastapi.middleware.cors",
+        "documentation": {}
+    },
+    {
+        "label": "hashlib",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "hashlib",
+        "description": "hashlib",
+        "detail": "hashlib",
+        "documentation": {}
+    },
+    {
+        "label": "urljoin",
+        "importPath": "urllib.parse",
+        "description": "urllib.parse",
+        "isExtraImport": true,
+        "detail": "urllib.parse",
+        "documentation": {}
+    },
+    {
+        "label": "httpx",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "httpx",
+        "description": "httpx",
+        "detail": "httpx",
+        "documentation": {}
+    },
+    {
+        "label": "Enum",
+        "importPath": "enum",
+        "description": "enum",
+        "isExtraImport": true,
+        "detail": "enum",
+        "documentation": {}
+    },
+    {
+        "label": "BaseModel",
+        "importPath": "pydantic",
+        "description": "pydantic",
+        "isExtraImport": true,
+        "detail": "pydantic",
+        "documentation": {}
+    },
+    {
+        "label": "Field",
+        "importPath": "pydantic",
+        "description": "pydantic",
+        "isExtraImport": true,
+        "detail": "pydantic",
+        "documentation": {}
+    },
+    {
+        "label": "HttpUrl",
+        "importPath": "pydantic",
+        "description": "pydantic",
+        "isExtraImport": true,
+        "detail": "pydantic",
+        "documentation": {}
+    },
+    {
+        "label": "Thread",
+        "importPath": "threading",
+        "description": "threading",
+        "isExtraImport": true,
+        "detail": "threading",
+        "documentation": {}
+    },
+    {
+        "label": "decode",
+        "importPath": "pyzbar.pyzbar",
+        "description": "pyzbar.pyzbar",
+        "isExtraImport": true,
+        "detail": "pyzbar.pyzbar",
+        "documentation": {}
+    },
+    {
+        "label": "TTFont",
+        "importPath": "fontTools.ttLib",
+        "description": "fontTools.ttLib",
+        "isExtraImport": true,
+        "detail": "fontTools.ttLib",
+        "documentation": {}
+    },
+    {
+        "label": "sfnt",
+        "importPath": "fontTools.ttLib",
+        "description": "fontTools.ttLib",
+        "isExtraImport": true,
+        "detail": "fontTools.ttLib",
+        "documentation": {}
+    },
+    {
+        "label": "TTFont",
+        "importPath": "fontTools.ttLib",
+        "description": "fontTools.ttLib",
+        "isExtraImport": true,
+        "detail": "fontTools.ttLib",
+        "documentation": {}
+    },
+    {
+        "label": "timestampNow",
+        "importPath": "fontTools.misc.timeTools",
+        "description": "fontTools.misc.timeTools",
+        "isExtraImport": true,
+        "detail": "fontTools.misc.timeTools",
+        "documentation": {}
+    },
+    {
+        "label": "collections",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "collections",
+        "description": "collections",
+        "detail": "collections",
+        "documentation": {}
+    },
+    {
+        "label": "parse_tfm",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "parse_tfm",
+        "description": "parse_tfm",
+        "detail": "parse_tfm",
+        "documentation": {}
+    },
+    {
+        "label": "subprocess",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "subprocess",
+        "description": "subprocess",
+        "detail": "subprocess",
+        "documentation": {}
+    },
+    {
+        "label": "load_cached_audit",
+        "kind": 2,
+        "importPath": "backend.cache",
+        "description": "backend.cache",
+        "peekOfCode": "def load_cached_audit(\n    url: str, ttl_seconds: int = DEFAULT_TTL_SECONDS\n) -> Optional[Tuple[ArticleBundle, list[Issue]]]:\n    \"\"\"Return cached bundle/issues for url when not expired.\"\"\"\n    _ensure_db()\n    now = int(time.time())\n    conn = sqlite3.connect(DB_PATH)\n    try:\n        cur = conn.execute(\n            \"SELECT payload, created_at FROM audit_cache WHERE url = ?\", (url,)",
+        "detail": "backend.cache",
+        "documentation": {}
+    },
+    {
+        "label": "save_audit",
+        "kind": 2,
+        "importPath": "backend.cache",
+        "description": "backend.cache",
+        "peekOfCode": "def save_audit(url: str, bundle: ArticleBundle, issues: list[Issue]) -> None:\n    \"\"\"Persist audit result for url.\"\"\"\n    _ensure_db()\n    serialized_issues = []\n    for item in issues:\n        if isinstance(item, Issue):\n            serialized_issues.append(item.model_dump(mode=\"json\"))\n        elif isinstance(item, dict):\n            serialized_issues.append(item)\n        else:",
+        "detail": "backend.cache",
+        "documentation": {}
+    },
+    {
+        "label": "delete_cached_audit",
+        "kind": 2,
+        "importPath": "backend.cache",
+        "description": "backend.cache",
+        "peekOfCode": "def delete_cached_audit(url: str) -> None:\n    \"\"\"Remove cached entry for the given URL.\"\"\"\n    _ensure_db()\n    conn = sqlite3.connect(DB_PATH)\n    try:\n        conn.execute(\"DELETE FROM audit_cache WHERE url = ?\", (url,))\n        conn.commit()\n    finally:\n        conn.close()",
+        "detail": "backend.cache",
+        "documentation": {}
+    },
+    {
+        "label": "DB_PATH",
+        "kind": 5,
+        "importPath": "backend.cache",
+        "description": "backend.cache",
+        "peekOfCode": "DB_PATH = Path(__file__).resolve().parent / \"audit_cache.db\"\nDEFAULT_TTL_SECONDS = int(os.getenv(\"CACHE_TTL_SECONDS\", 7200))\ndef _ensure_db() -> None:\n    DB_PATH.parent.mkdir(parents=True, exist_ok=True)\n    conn = sqlite3.connect(DB_PATH)\n    try:\n        conn.execute(\n            \"\"\"\n            CREATE TABLE IF NOT EXISTS audit_cache (\n                url TEXT PRIMARY KEY,",
+        "detail": "backend.cache",
+        "documentation": {}
+    },
+    {
+        "label": "DEFAULT_TTL_SECONDS",
+        "kind": 5,
+        "importPath": "backend.cache",
+        "description": "backend.cache",
+        "peekOfCode": "DEFAULT_TTL_SECONDS = int(os.getenv(\"CACHE_TTL_SECONDS\", 7200))\ndef _ensure_db() -> None:\n    DB_PATH.parent.mkdir(parents=True, exist_ok=True)\n    conn = sqlite3.connect(DB_PATH)\n    try:\n        conn.execute(\n            \"\"\"\n            CREATE TABLE IF NOT EXISTS audit_cache (\n                url TEXT PRIMARY KEY,\n                payload TEXT NOT NULL,",
+        "detail": "backend.cache",
+        "documentation": {}
+    },
+    {
+        "label": "capture_article",
+        "kind": 2,
+        "importPath": "backend.capture",
+        "description": "backend.capture",
+        "peekOfCode": "def capture_article(\n    url: str, viewport: Tuple[int, int] = (600, 800), wait_ms: int = 1500\n) -> ArticleBundle:\n    \"\"\"Render the URL and return a structured bundle with basic assets.\"\"\"\n    out_dir = Path(__file__).resolve().parent / \"captures\"\n    out_dir.mkdir(parents=True, exist_ok=True)\n    screenshot_name = f\"screenshot-{uuid4().hex}.png\"\n    screenshot_path = out_dir / screenshot_name\n    try:\n        with sync_playwright() as p:",
+        "detail": "backend.capture",
+        "documentation": {}
+    },
+    {
+        "label": "main",
+        "kind": 2,
+        "importPath": "backend.cli",
+        "description": "backend.cli",
+        "peekOfCode": "def main() -> int:\n    parser = argparse.ArgumentParser(\n        description=\"Run audit pipeline once and print JSON output.\"\n    )\n    parser.add_argument(\"--url\", required=True, help=\"Page URL to audit\")\n    args = parser.parse_args()\n    try:\n        bundle, issues = run_pipeline(args.url)\n    except Exception as exc:  # noqa: BLE001\n        print(f\"Pipeline failed: {exc}\", file=sys.stderr)",
+        "detail": "backend.cli",
+        "documentation": {}
+    },
+    {
+        "label": "audit_multimodal",
+        "kind": 2,
+        "importPath": "backend.llm_multimodal",
+        "description": "backend.llm_multimodal",
+        "peekOfCode": "def audit_multimodal(\n    bundle: ArticleBundle, checklist: Optional[List[str]] = None\n) -> List[Issue]:\n    \"\"\"Call Qwen VLM with an image and structured summary to check consistency.\"\"\"\n    image_path = _select_image_path(bundle)\n    if not image_path:\n        return []\n    original_data_url, width, height = _encode_original(image_path)\n    grid_data_url, grid_meta, grid_path = _encode_grid_image(image_path)\n    if not original_data_url or not grid_data_url:",
+        "detail": "backend.llm_multimodal",
+        "documentation": {}
+    },
+    {
+        "label": "audit_text",
+        "kind": 2,
+        "importPath": "backend.llm_text",
+        "description": "backend.llm_text",
+        "peekOfCode": "def audit_text(\n    bundle: ArticleBundle, checklist: Optional[List[str]] = None\n) -> List[Issue]:\n    \"\"\"Call text LLM to flag typos/format issues. Returns an Issue list.\"\"\"\n    if not bundle.text_blocks:\n        return []\n    snippet = \"\\n\\n\".join([b.text for b in bundle.text_blocks])\n    # debug\n    print(\"snippet:\", snippet)\n    checklist = [item.strip() for item in (checklist or []) if item and item.strip()]",
+        "detail": "backend.llm_text",
+        "documentation": {}
+    },
+    {
+        "label": "health",
+        "kind": 2,
+        "importPath": "backend.main",
+        "description": "backend.main",
+        "peekOfCode": "def health():\n    return {\"status\": \"ok\"}\n@app.post(\"/api/audit\", response_model=AuditStatusResponse)\ndef create_audit(request: AuditRequest):\n    return start_audit(request.url, checklist=request.checklist)\n@app.get(\"/api/audit/{task_id}\", response_model=AuditStatusResponse)\ndef read_audit(task_id: str):\n    status = get_status(task_id)\n    if not status:\n        raise HTTPException(status_code=404, detail=\"task not found\")",
+        "detail": "backend.main",
+        "documentation": {}
+    },
+    {
+        "label": "create_audit",
+        "kind": 2,
+        "importPath": "backend.main",
+        "description": "backend.main",
+        "peekOfCode": "def create_audit(request: AuditRequest):\n    return start_audit(request.url, checklist=request.checklist)\n@app.get(\"/api/audit/{task_id}\", response_model=AuditStatusResponse)\ndef read_audit(task_id: str):\n    status = get_status(task_id)\n    if not status:\n        raise HTTPException(status_code=404, detail=\"task not found\")\n    return status",
+        "detail": "backend.main",
+        "documentation": {}
+    },
+    {
+        "label": "read_audit",
+        "kind": 2,
+        "importPath": "backend.main",
+        "description": "backend.main",
+        "peekOfCode": "def read_audit(task_id: str):\n    status = get_status(task_id)\n    if not status:\n        raise HTTPException(status_code=404, detail=\"task not found\")\n    return status",
+        "detail": "backend.main",
+        "documentation": {}
+    },
+    {
+        "label": "app",
+        "kind": 5,
+        "importPath": "backend.main",
+        "description": "backend.main",
+        "peekOfCode": "app = FastAPI(title=\"Audit Assistant API\")\ncaptures_dir = Path(__file__).resolve().parent / \"captures\"\ncaptures_dir.mkdir(exist_ok=True)\napp.mount(\"/api/captures\", StaticFiles(directory=str(captures_dir)), name=\"captures\")\napp.add_middleware(\n    CORSMiddleware,\n    allow_origins=[\"http://localhost:8001\", \"http://127.0.0.1:8001\", \"*\"],\n    allow_credentials=True,\n    allow_methods=[\"*\"],\n    allow_headers=[\"*\"],",
+        "detail": "backend.main",
+        "documentation": {}
+    },
+    {
+        "label": "captures_dir",
+        "kind": 5,
+        "importPath": "backend.main",
+        "description": "backend.main",
+        "peekOfCode": "captures_dir = Path(__file__).resolve().parent / \"captures\"\ncaptures_dir.mkdir(exist_ok=True)\napp.mount(\"/api/captures\", StaticFiles(directory=str(captures_dir)), name=\"captures\")\napp.add_middleware(\n    CORSMiddleware,\n    allow_origins=[\"http://localhost:8001\", \"http://127.0.0.1:8001\", \"*\"],\n    allow_credentials=True,\n    allow_methods=[\"*\"],\n    allow_headers=[\"*\"],\n)",
+        "detail": "backend.main",
+        "documentation": {}
+    },
+    {
+        "label": "enrich_bundle",
+        "kind": 2,
+        "importPath": "backend.parser",
+        "description": "backend.parser",
+        "peekOfCode": "def enrich_bundle(bundle: ArticleBundle, base_url: str) -> ArticleBundle:\n    \"\"\"Resolve links and download images; returns updated bundle.\"\"\"\n    client = httpx.Client(timeout=15)\n    links = [_resolve_link(client, base_url, link) for link in bundle.links]\n    image_dir = Path(\"captures/images\")\n    images = [\n        _download_image(client, base_url, asset, image_dir) for asset in bundle.images\n    ]\n    client.close()\n    return bundle.model_copy(",
+        "detail": "backend.parser",
+        "documentation": {}
+    },
+    {
+        "label": "Severity",
+        "kind": 6,
+        "importPath": "backend.schema",
+        "description": "backend.schema",
+        "peekOfCode": "class Severity(str, Enum):\n    info = \"info\"\n    warn = \"warn\"\n    critical = \"critical\"\nclass IssueType(str, Enum):\n    typo = \"typo\"\n    link = \"link\"\n    qrcode = \"qrcode\"\n    image_text_mismatch = \"image_text_mismatch\"\n    compliance = \"compliance\"",
+        "detail": "backend.schema",
+        "documentation": {}
+    },
+    {
+        "label": "IssueType",
+        "kind": 6,
+        "importPath": "backend.schema",
+        "description": "backend.schema",
+        "peekOfCode": "class IssueType(str, Enum):\n    typo = \"typo\"\n    link = \"link\"\n    qrcode = \"qrcode\"\n    image_text_mismatch = \"image_text_mismatch\"\n    compliance = \"compliance\"\n    layout = \"layout\"\nclass TaskStatus(str, Enum):\n    pending = \"pending\"\n    running = \"running\"",
+        "detail": "backend.schema",
+        "documentation": {}
+    },
+    {
+        "label": "TaskStatus",
+        "kind": 6,
+        "importPath": "backend.schema",
+        "description": "backend.schema",
+        "peekOfCode": "class TaskStatus(str, Enum):\n    pending = \"pending\"\n    running = \"running\"\n    completed = \"completed\"\n    failed = \"failed\"\nclass BoundingBox(BaseModel):\n    x: int\n    y: int\n    width: int\n    height: int",
+        "detail": "backend.schema",
+        "documentation": {}
+    },
+    {
+        "label": "BoundingBox",
+        "kind": 6,
+        "importPath": "backend.schema",
+        "description": "backend.schema",
+        "peekOfCode": "class BoundingBox(BaseModel):\n    x: int\n    y: int\n    width: int\n    height: int\nclass TextBlock(BaseModel):\n    id: str\n    text: str\n    path: Optional[str] = None\n    order: Optional[int] = None",
+        "detail": "backend.schema",
+        "documentation": {}
+    },
+    {
+        "label": "TextBlock",
+        "kind": 6,
+        "importPath": "backend.schema",
+        "description": "backend.schema",
+        "peekOfCode": "class TextBlock(BaseModel):\n    id: str\n    text: str\n    path: Optional[str] = None\n    order: Optional[int] = None\n    bbox: Optional[BoundingBox] = None\nclass LinkItem(BaseModel):\n    id: str\n    href: str\n    resolved_url: Optional[str] = None",
+        "detail": "backend.schema",
+        "documentation": {}
+    },
+    {
+        "label": "LinkItem",
+        "kind": 6,
+        "importPath": "backend.schema",
+        "description": "backend.schema",
+        "peekOfCode": "class LinkItem(BaseModel):\n    id: str\n    href: str\n    resolved_url: Optional[str] = None\n    status_code: Optional[int] = None\n    title: Optional[str] = None\n    risk_flags: List[str] = Field(default_factory=list)\nclass ImageAsset(BaseModel):\n    id: str\n    url: str",
+        "detail": "backend.schema",
+        "documentation": {}
+    },
+    {
+        "label": "ImageAsset",
+        "kind": 6,
+        "importPath": "backend.schema",
+        "description": "backend.schema",
+        "peekOfCode": "class ImageAsset(BaseModel):\n    id: str\n    url: str\n    width: Optional[int] = None\n    height: Optional[int] = None\n    role: Optional[str] = None\n    sha256: Optional[str] = None\n    local_path: Optional[str] = None\nclass QRCodeEntry(BaseModel):\n    id: str",
+        "detail": "backend.schema",
+        "documentation": {}
+    },
+    {
+        "label": "QRCodeEntry",
+        "kind": 6,
+        "importPath": "backend.schema",
+        "description": "backend.schema",
+        "peekOfCode": "class QRCodeEntry(BaseModel):\n    id: str\n    image_id: str\n    bbox: BoundingBox\n    decoded_text: Optional[str] = None\n    code_type: Optional[str] = None\n    confidence: Optional[float] = None\nclass OCRText(BaseModel):\n    id: str\n    image_id: str",
+        "detail": "backend.schema",
+        "documentation": {}
+    },
+    {
+        "label": "OCRText",
+        "kind": 6,
+        "importPath": "backend.schema",
+        "description": "backend.schema",
+        "peekOfCode": "class OCRText(BaseModel):\n    id: str\n    image_id: str\n    bbox: BoundingBox\n    text: str\nclass ScreenshotMeta(BaseModel):\n    id: str\n    filename: str\n    scroll_y: Optional[int] = None\n    width: Optional[int] = None",
+        "detail": "backend.schema",
+        "documentation": {}
+    },
+    {
+        "label": "ScreenshotMeta",
+        "kind": 6,
+        "importPath": "backend.schema",
+        "description": "backend.schema",
+        "peekOfCode": "class ScreenshotMeta(BaseModel):\n    id: str\n    filename: str\n    scroll_y: Optional[int] = None\n    width: Optional[int] = None\n    height: Optional[int] = None\nclass IssueEvidence(BaseModel):\n    text_block_id: Optional[str] = None\n    link_id: Optional[str] = None\n    image_id: Optional[str] = None",
+        "detail": "backend.schema",
+        "documentation": {}
+    },
+    {
+        "label": "IssueEvidence",
+        "kind": 6,
+        "importPath": "backend.schema",
+        "description": "backend.schema",
+        "peekOfCode": "class IssueEvidence(BaseModel):\n    text_block_id: Optional[str] = None\n    link_id: Optional[str] = None\n    image_id: Optional[str] = None\n    screenshot_id: Optional[str] = None\n    bbox: Optional[BoundingBox] = None\n    quote: Optional[str] = None\nclass Issue(BaseModel):\n    id: str\n    type: IssueType",
+        "detail": "backend.schema",
+        "documentation": {}
+    },
+    {
+        "label": "Issue",
+        "kind": 6,
+        "importPath": "backend.schema",
+        "description": "backend.schema",
+        "peekOfCode": "class Issue(BaseModel):\n    id: str\n    type: IssueType\n    severity: Severity\n    evidence: IssueEvidence\n    recommendation: Optional[str] = None\n    confidence: Optional[float] = None\nclass ArticleBundle(BaseModel):\n    source_url: Optional[str] = None\n    text_blocks: List[TextBlock] = Field(default_factory=list)",
+        "detail": "backend.schema",
+        "documentation": {}
+    },
+    {
+        "label": "ArticleBundle",
+        "kind": 6,
+        "importPath": "backend.schema",
+        "description": "backend.schema",
+        "peekOfCode": "class ArticleBundle(BaseModel):\n    source_url: Optional[str] = None\n    text_blocks: List[TextBlock] = Field(default_factory=list)\n    links: List[LinkItem] = Field(default_factory=list)\n    images: List[ImageAsset] = Field(default_factory=list)\n    qrcodes: List[QRCodeEntry] = Field(default_factory=list)\n    ocr_texts: List[OCRText] = Field(default_factory=list)\n    screenshots: List[ScreenshotMeta] = Field(default_factory=list)\nclass AuditRequest(BaseModel):\n    url: HttpUrl",
+        "detail": "backend.schema",
+        "documentation": {}
+    },
+    {
+        "label": "AuditRequest",
+        "kind": 6,
+        "importPath": "backend.schema",
+        "description": "backend.schema",
+        "peekOfCode": "class AuditRequest(BaseModel):\n    url: HttpUrl\n    checklist: List[str] = Field(default_factory=list)\nclass AuditStartResponse(BaseModel):\n    task_id: str\n    status: TaskStatus\nclass AuditStatusResponse(BaseModel):\n    task_id: str\n    status: TaskStatus\n    result: Optional[ArticleBundle] = None",
+        "detail": "backend.schema",
+        "documentation": {}
+    },
+    {
+        "label": "AuditStartResponse",
+        "kind": 6,
+        "importPath": "backend.schema",
+        "description": "backend.schema",
+        "peekOfCode": "class AuditStartResponse(BaseModel):\n    task_id: str\n    status: TaskStatus\nclass AuditStatusResponse(BaseModel):\n    task_id: str\n    status: TaskStatus\n    result: Optional[ArticleBundle] = None\n    issues: List[Issue] = Field(default_factory=list)\n    checklist: List[str] = Field(default_factory=list)\n    message: Optional[str] = None",
+        "detail": "backend.schema",
+        "documentation": {}
+    },
+    {
+        "label": "AuditStatusResponse",
+        "kind": 6,
+        "importPath": "backend.schema",
+        "description": "backend.schema",
+        "peekOfCode": "class AuditStatusResponse(BaseModel):\n    task_id: str\n    status: TaskStatus\n    result: Optional[ArticleBundle] = None\n    issues: List[Issue] = Field(default_factory=list)\n    checklist: List[str] = Field(default_factory=list)\n    message: Optional[str] = None\n    progress: Optional[int] = Field(\n        default=None,\n        ge=0,",
+        "detail": "backend.schema",
+        "documentation": {}
+    },
+    {
+        "label": "create_task",
+        "kind": 2,
+        "importPath": "backend.store",
+        "description": "backend.store",
+        "peekOfCode": "def create_task(url: str, checklist: Optional[list[str]] = None) -> dict:\n    _ensure_db()\n    task_id = uuid4().hex\n    now = int(time.time())\n    status = TaskStatus.running.value\n    message = \"Audit pipeline queued.\"\n    progress = 0\n    checklist = checklist or []\n    conn = sqlite3.connect(DB_PATH)\n    try:",
+        "detail": "backend.store",
+        "documentation": {}
+    },
+    {
+        "label": "update_task",
+        "kind": 2,
+        "importPath": "backend.store",
+        "description": "backend.store",
+        "peekOfCode": "def update_task(\n    task_id: str,\n    *,\n    checklist: Any = None,\n    status: Optional[str] = None,\n    message: Optional[str] = None,\n    progress: Optional[int] = None,\n    result: Any = None,\n    issues: Any = None,\n) -> None:",
+        "detail": "backend.store",
+        "documentation": {}
+    },
+    {
+        "label": "get_task",
+        "kind": 2,
+        "importPath": "backend.store",
+        "description": "backend.store",
+        "peekOfCode": "def get_task(task_id: str) -> Optional[dict]:\n    _ensure_db()\n    conn = sqlite3.connect(DB_PATH)\n    try:\n        cur = conn.execute(\n            \"\"\"\n            SELECT task_id, url, checklist, status, message, progress, result, issues, created_at, updated_at\n            FROM audits WHERE task_id = ?\n            \"\"\",\n            (task_id,),",
+        "detail": "backend.store",
+        "documentation": {}
+    },
+    {
+        "label": "DB_PATH",
+        "kind": 5,
+        "importPath": "backend.store",
+        "description": "backend.store",
+        "peekOfCode": "DB_PATH = Path(__file__).resolve().parent / \"audit_store.db\"\ndef _ensure_db() -> None:\n    DB_PATH.parent.mkdir(parents=True, exist_ok=True)\n    conn = sqlite3.connect(DB_PATH)\n    try:\n        conn.execute(\n            \"\"\"\n            CREATE TABLE IF NOT EXISTS audits (\n                task_id TEXT PRIMARY KEY,\n                url TEXT NOT NULL,",
+        "detail": "backend.store",
+        "documentation": {}
+    },
+    {
+        "label": "start_audit",
+        "kind": 2,
+        "importPath": "backend.tasks",
+        "description": "backend.tasks",
+        "peekOfCode": "def start_audit(url: str, checklist: Optional[List[str]] = None) -> AuditStatusResponse:\n    record = create_task(str(url), checklist=checklist or [])\n    task_id = record[\"task_id\"]\n    thread = Thread(\n        target=_run_pipeline,\n        args=(task_id, str(url), record.get(\"checklist\") or []),\n        daemon=True,\n    )\n    thread.start()\n    return AuditStatusResponse(",
+        "detail": "backend.tasks",
+        "documentation": {}
+    },
+    {
+        "label": "run_pipeline",
+        "kind": 2,
+        "importPath": "backend.tasks",
+        "description": "backend.tasks",
+        "peekOfCode": "def run_pipeline(\n    task_id: str, url: str, checklist: Optional[List[str]] = None\n) -> Tuple[ArticleBundle, list[Issue]]:\n    \"\"\"Run the full audit pipeline synchronously with progress updates.\"\"\"\n    _update_progress(task_id, 5, \"Starting capture\")\n    bundle = capture_article(url)\n    _update_progress(task_id, 25, \"Parsing & enriching\")\n    bundle = enrich_bundle(bundle, url)\n    _update_progress(task_id, 45, \"Analyzing images\")\n    bundle = analyze_images(bundle)",
+        "detail": "backend.tasks",
+        "documentation": {}
+    },
+    {
+        "label": "get_status",
+        "kind": 2,
+        "importPath": "backend.tasks",
+        "description": "backend.tasks",
+        "peekOfCode": "def get_status(task_id: str) -> Optional[AuditStatusResponse]:\n    record = get_task(task_id)\n    if not record:\n        return None\n    bundle = None\n    if record.get(\"result\"):\n        try:\n            bundle = ArticleBundle.model_validate(record[\"result\"])\n        except Exception:\n            bundle = None",
+        "detail": "backend.tasks",
+        "documentation": {}
+    },
+    {
+        "label": "complete_task",
+        "kind": 2,
+        "importPath": "backend.tasks",
+        "description": "backend.tasks",
+        "peekOfCode": "def complete_task(task_id: str, bundle: ArticleBundle, issues=None) -> None:\n    issues = _coerce_issues(issues)\n    update_task(\n        task_id,\n        status=TaskStatus.completed.value,\n        message=\"Audit completed.\",\n        progress=100,\n        result=bundle.model_dump(mode=\"json\"),\n        issues=[issue.model_dump(mode=\"json\") for issue in issues],\n    )",
+        "detail": "backend.tasks",
+        "documentation": {}
+    },
+    {
+        "label": "fail_task",
+        "kind": 2,
+        "importPath": "backend.tasks",
+        "description": "backend.tasks",
+        "peekOfCode": "def fail_task(task_id: str, message: str) -> None:\n    update_task(task_id, status=TaskStatus.failed.value, message=message)",
+        "detail": "backend.tasks",
+        "documentation": {}
+    },
+    {
+        "label": "analyze_images",
+        "kind": 2,
+        "importPath": "backend.vision",
+        "description": "backend.vision",
+        "peekOfCode": "def analyze_images(bundle: ArticleBundle) -> ArticleBundle:\n    \"\"\"Run QR detection on downloaded images and screenshots.\"\"\"\n    qrs: List[QRCodeEntry] = []\n    # Scan downloaded images if local_path is available.\n    for asset in bundle.images:\n        if asset.local_path:\n            qrs.extend(_scan_file(Path(asset.local_path), asset.id))\n    # Scan screenshots as a fallback surface.\n    for shot in bundle.screenshots:\n        qrs.extend(_scan_file(Path(shot.filename), shot.id))",
+        "detail": "backend.vision",
+        "documentation": {}
+    },
+    {
+        "label": "sfnt.USE_ZOPFLI",
+        "kind": 5,
+        "importPath": "frontend.node_modules.katex.src.fonts.generate_fonts",
+        "description": "frontend.node_modules.katex.src.fonts.generate_fonts",
+        "peekOfCode": "sfnt.USE_ZOPFLI = True\nif len(sys.argv) < 2:\n    print(\"Usage: %s <font file>\" % sys.argv[0])\n    sys.exit(1)\nfont_file = sys.argv[1]\nfont_name = os.path.splitext(os.path.basename(font_file))[0]\nfont = TTFont(font_file, recalcBBoxes=False, recalcTimestamp=False)\n# fix timestamp to the epoch\nfont['head'].created = 0\nfont['head'].modified = 0",
+        "detail": "frontend.node_modules.katex.src.fonts.generate_fonts",
+        "documentation": {}
+    },
+    {
+        "label": "font_file",
+        "kind": 5,
+        "importPath": "frontend.node_modules.katex.src.fonts.generate_fonts",
+        "description": "frontend.node_modules.katex.src.fonts.generate_fonts",
+        "peekOfCode": "font_file = sys.argv[1]\nfont_name = os.path.splitext(os.path.basename(font_file))[0]\nfont = TTFont(font_file, recalcBBoxes=False, recalcTimestamp=False)\n# fix timestamp to the epoch\nfont['head'].created = 0\nfont['head'].modified = 0\n# remove fontforge timestamps\nif 'FFTM' in font:\n    del font['FFTM']\n# remove redundant GDEF table",
+        "detail": "frontend.node_modules.katex.src.fonts.generate_fonts",
+        "documentation": {}
+    },
+    {
+        "label": "font_name",
+        "kind": 5,
+        "importPath": "frontend.node_modules.katex.src.fonts.generate_fonts",
+        "description": "frontend.node_modules.katex.src.fonts.generate_fonts",
+        "peekOfCode": "font_name = os.path.splitext(os.path.basename(font_file))[0]\nfont = TTFont(font_file, recalcBBoxes=False, recalcTimestamp=False)\n# fix timestamp to the epoch\nfont['head'].created = 0\nfont['head'].modified = 0\n# remove fontforge timestamps\nif 'FFTM' in font:\n    del font['FFTM']\n# remove redundant GDEF table\nif 'GDEF' in font:",
+        "detail": "frontend.node_modules.katex.src.fonts.generate_fonts",
+        "documentation": {}
+    },
+    {
+        "label": "font",
+        "kind": 5,
+        "importPath": "frontend.node_modules.katex.src.fonts.generate_fonts",
+        "description": "frontend.node_modules.katex.src.fonts.generate_fonts",
+        "peekOfCode": "font = TTFont(font_file, recalcBBoxes=False, recalcTimestamp=False)\n# fix timestamp to the epoch\nfont['head'].created = 0\nfont['head'].modified = 0\n# remove fontforge timestamps\nif 'FFTM' in font:\n    del font['FFTM']\n# remove redundant GDEF table\nif 'GDEF' in font:\n    del font['GDEF']",
+        "detail": "frontend.node_modules.katex.src.fonts.generate_fonts",
+        "documentation": {}
+    },
+    {
+        "label": "font['head'].created",
+        "kind": 5,
+        "importPath": "frontend.node_modules.katex.src.fonts.generate_fonts",
+        "description": "frontend.node_modules.katex.src.fonts.generate_fonts",
+        "peekOfCode": "font['head'].created = 0\nfont['head'].modified = 0\n# remove fontforge timestamps\nif 'FFTM' in font:\n    del font['FFTM']\n# remove redundant GDEF table\nif 'GDEF' in font:\n    del font['GDEF']\n# remove Macintosh table\n# https://developer.apple.com/fonts/TrueType-Reference-Manual/RM06/Chap6cmap.html",
+        "detail": "frontend.node_modules.katex.src.fonts.generate_fonts",
+        "documentation": {}
+    },
+    {
+        "label": "font['head'].modified",
+        "kind": 5,
+        "importPath": "frontend.node_modules.katex.src.fonts.generate_fonts",
+        "description": "frontend.node_modules.katex.src.fonts.generate_fonts",
+        "peekOfCode": "font['head'].modified = 0\n# remove fontforge timestamps\nif 'FFTM' in font:\n    del font['FFTM']\n# remove redundant GDEF table\nif 'GDEF' in font:\n    del font['GDEF']\n# remove Macintosh table\n# https://developer.apple.com/fonts/TrueType-Reference-Manual/RM06/Chap6cmap.html\nfont['name'].names = [record for record in font['name'].names if record.platformID != 1]",
+        "detail": "frontend.node_modules.katex.src.fonts.generate_fonts",
+        "documentation": {}
+    },
+    {
+        "label": "font['name'].names",
+        "kind": 5,
+        "importPath": "frontend.node_modules.katex.src.fonts.generate_fonts",
+        "description": "frontend.node_modules.katex.src.fonts.generate_fonts",
+        "peekOfCode": "font['name'].names = [record for record in font['name'].names if record.platformID != 1]\nfont['cmap'].tables = [table for table in font['cmap'].tables if table.platformID != 1]\n# fix OS/2 and hhea metrics\nglyf = font['glyf']\nascent = int(max(glyf[c].yMax for c in font.getGlyphOrder() if hasattr(glyf[c], \"yMax\")))\ndescent = -int(min(glyf[c].yMin for c in font.getGlyphOrder() if hasattr(glyf[c], \"yMin\")))\nfont['OS/2'].usWinAscent = ascent\nfont['OS/2'].usWinDescent = descent\nfont['hhea'].ascent = ascent\nfont['hhea'].descent = -descent",
+        "detail": "frontend.node_modules.katex.src.fonts.generate_fonts",
+        "documentation": {}
+    },
+    {
+        "label": "font['cmap'].tables",
+        "kind": 5,
+        "importPath": "frontend.node_modules.katex.src.fonts.generate_fonts",
+        "description": "frontend.node_modules.katex.src.fonts.generate_fonts",
+        "peekOfCode": "font['cmap'].tables = [table for table in font['cmap'].tables if table.platformID != 1]\n# fix OS/2 and hhea metrics\nglyf = font['glyf']\nascent = int(max(glyf[c].yMax for c in font.getGlyphOrder() if hasattr(glyf[c], \"yMax\")))\ndescent = -int(min(glyf[c].yMin for c in font.getGlyphOrder() if hasattr(glyf[c], \"yMin\")))\nfont['OS/2'].usWinAscent = ascent\nfont['OS/2'].usWinDescent = descent\nfont['hhea'].ascent = ascent\nfont['hhea'].descent = -descent\n# save TTF",
+        "detail": "frontend.node_modules.katex.src.fonts.generate_fonts",
+        "documentation": {}
+    },
+    {
+        "label": "glyf",
+        "kind": 5,
+        "importPath": "frontend.node_modules.katex.src.fonts.generate_fonts",
+        "description": "frontend.node_modules.katex.src.fonts.generate_fonts",
+        "peekOfCode": "glyf = font['glyf']\nascent = int(max(glyf[c].yMax for c in font.getGlyphOrder() if hasattr(glyf[c], \"yMax\")))\ndescent = -int(min(glyf[c].yMin for c in font.getGlyphOrder() if hasattr(glyf[c], \"yMin\")))\nfont['OS/2'].usWinAscent = ascent\nfont['OS/2'].usWinDescent = descent\nfont['hhea'].ascent = ascent\nfont['hhea'].descent = -descent\n# save TTF\nfont.save(font_file, reorderTables=None)\n# save WOFF",
+        "detail": "frontend.node_modules.katex.src.fonts.generate_fonts",
+        "documentation": {}
+    },
+    {
+        "label": "ascent",
+        "kind": 5,
+        "importPath": "frontend.node_modules.katex.src.fonts.generate_fonts",
+        "description": "frontend.node_modules.katex.src.fonts.generate_fonts",
+        "peekOfCode": "ascent = int(max(glyf[c].yMax for c in font.getGlyphOrder() if hasattr(glyf[c], \"yMax\")))\ndescent = -int(min(glyf[c].yMin for c in font.getGlyphOrder() if hasattr(glyf[c], \"yMin\")))\nfont['OS/2'].usWinAscent = ascent\nfont['OS/2'].usWinDescent = descent\nfont['hhea'].ascent = ascent\nfont['hhea'].descent = -descent\n# save TTF\nfont.save(font_file, reorderTables=None)\n# save WOFF\nfont.flavor = 'woff'",
+        "detail": "frontend.node_modules.katex.src.fonts.generate_fonts",
+        "documentation": {}
+    },
+    {
+        "label": "descent",
+        "kind": 5,
+        "importPath": "frontend.node_modules.katex.src.fonts.generate_fonts",
+        "description": "frontend.node_modules.katex.src.fonts.generate_fonts",
+        "peekOfCode": "descent = -int(min(glyf[c].yMin for c in font.getGlyphOrder() if hasattr(glyf[c], \"yMin\")))\nfont['OS/2'].usWinAscent = ascent\nfont['OS/2'].usWinDescent = descent\nfont['hhea'].ascent = ascent\nfont['hhea'].descent = -descent\n# save TTF\nfont.save(font_file, reorderTables=None)\n# save WOFF\nfont.flavor = 'woff'\nfont.save(os.path.join('woff', font_name + '.woff'), reorderTables=None)",
+        "detail": "frontend.node_modules.katex.src.fonts.generate_fonts",
+        "documentation": {}
+    },
+    {
+        "label": "font['OS/2'].usWinAscent",
+        "kind": 5,
+        "importPath": "frontend.node_modules.katex.src.fonts.generate_fonts",
+        "description": "frontend.node_modules.katex.src.fonts.generate_fonts",
+        "peekOfCode": "font['OS/2'].usWinAscent = ascent\nfont['OS/2'].usWinDescent = descent\nfont['hhea'].ascent = ascent\nfont['hhea'].descent = -descent\n# save TTF\nfont.save(font_file, reorderTables=None)\n# save WOFF\nfont.flavor = 'woff'\nfont.save(os.path.join('woff', font_name + '.woff'), reorderTables=None)\n# save WOFF2",
+        "detail": "frontend.node_modules.katex.src.fonts.generate_fonts",
+        "documentation": {}
+    },
+    {
+        "label": "font['OS/2'].usWinDescent",
+        "kind": 5,
+        "importPath": "frontend.node_modules.katex.src.fonts.generate_fonts",
+        "description": "frontend.node_modules.katex.src.fonts.generate_fonts",
+        "peekOfCode": "font['OS/2'].usWinDescent = descent\nfont['hhea'].ascent = ascent\nfont['hhea'].descent = -descent\n# save TTF\nfont.save(font_file, reorderTables=None)\n# save WOFF\nfont.flavor = 'woff'\nfont.save(os.path.join('woff', font_name + '.woff'), reorderTables=None)\n# save WOFF2\nfont.flavor = 'woff2'",
+        "detail": "frontend.node_modules.katex.src.fonts.generate_fonts",
+        "documentation": {}
+    },
+    {
+        "label": "font['hhea'].ascent",
+        "kind": 5,
+        "importPath": "frontend.node_modules.katex.src.fonts.generate_fonts",
+        "description": "frontend.node_modules.katex.src.fonts.generate_fonts",
+        "peekOfCode": "font['hhea'].ascent = ascent\nfont['hhea'].descent = -descent\n# save TTF\nfont.save(font_file, reorderTables=None)\n# save WOFF\nfont.flavor = 'woff'\nfont.save(os.path.join('woff', font_name + '.woff'), reorderTables=None)\n# save WOFF2\nfont.flavor = 'woff2'\nfont.save(os.path.join('woff2', font_name + '.woff2'), reorderTables=None)",
+        "detail": "frontend.node_modules.katex.src.fonts.generate_fonts",
+        "documentation": {}
+    },
+    {
+        "label": "font['hhea'].descent",
+        "kind": 5,
+        "importPath": "frontend.node_modules.katex.src.fonts.generate_fonts",
+        "description": "frontend.node_modules.katex.src.fonts.generate_fonts",
+        "peekOfCode": "font['hhea'].descent = -descent\n# save TTF\nfont.save(font_file, reorderTables=None)\n# save WOFF\nfont.flavor = 'woff'\nfont.save(os.path.join('woff', font_name + '.woff'), reorderTables=None)\n# save WOFF2\nfont.flavor = 'woff2'\nfont.save(os.path.join('woff2', font_name + '.woff2'), reorderTables=None)",
+        "detail": "frontend.node_modules.katex.src.fonts.generate_fonts",
+        "documentation": {}
+    },
+    {
+        "label": "font.flavor",
+        "kind": 5,
+        "importPath": "frontend.node_modules.katex.src.fonts.generate_fonts",
+        "description": "frontend.node_modules.katex.src.fonts.generate_fonts",
+        "peekOfCode": "font.flavor = 'woff'\nfont.save(os.path.join('woff', font_name + '.woff'), reorderTables=None)\n# save WOFF2\nfont.flavor = 'woff2'\nfont.save(os.path.join('woff2', font_name + '.woff2'), reorderTables=None)",
+        "detail": "frontend.node_modules.katex.src.fonts.generate_fonts",
+        "documentation": {}
+    },
+    {
+        "label": "font.flavor",
+        "kind": 5,
+        "importPath": "frontend.node_modules.katex.src.fonts.generate_fonts",
+        "description": "frontend.node_modules.katex.src.fonts.generate_fonts",
+        "peekOfCode": "font.flavor = 'woff2'\nfont.save(os.path.join('woff2', font_name + '.woff2'), reorderTables=None)",
+        "detail": "frontend.node_modules.katex.src.fonts.generate_fonts",
+        "documentation": {}
+    },
+    {
+        "label": "find_font_path",
+        "kind": 2,
+        "importPath": "frontend.node_modules.katex.src.metrics.extract_tfms",
+        "description": "frontend.node_modules.katex.src.metrics.extract_tfms",
+        "peekOfCode": "def find_font_path(font_name):\n    try:\n        font_path = subprocess.check_output(['kpsewhich', font_name])\n    except OSError:\n        raise RuntimeError(\"Couldn't find kpsewhich program, make sure you\" +\n                           \" have TeX installed\")\n    except subprocess.CalledProcessError:\n        raise RuntimeError(\"Couldn't find font metrics: '%s'\" % font_name)\n    return font_path.strip()\ndef main():",
+        "detail": "frontend.node_modules.katex.src.metrics.extract_tfms",
+        "documentation": {}
+    },
+    {
+        "label": "main",
+        "kind": 2,
+        "importPath": "frontend.node_modules.katex.src.metrics.extract_tfms",
+        "description": "frontend.node_modules.katex.src.metrics.extract_tfms",
+        "peekOfCode": "def main():\n    mapping = json.load(sys.stdin)\n    fonts = [\n        'cmbsy10.tfm',\n        'cmbx10.tfm',\n        'cmbxti10.tfm',\n        'cmex10.tfm',\n        'cmmi10.tfm',\n        'cmmib10.tfm',\n        'cmr10.tfm',",
+        "detail": "frontend.node_modules.katex.src.metrics.extract_tfms",
+        "documentation": {}
+    },
+    {
+        "label": "main",
+        "kind": 2,
+        "importPath": "frontend.node_modules.katex.src.metrics.extract_ttfs",
+        "description": "frontend.node_modules.katex.src.metrics.extract_ttfs",
+        "peekOfCode": "def main():\n    start_json = json.load(sys.stdin)\n    for font in start_json:\n        fontInfo = TTFont(\"../../fonts/KaTeX_\" + font + \".ttf\")\n        glyf = fontInfo[\"glyf\"]\n        widths = fontInfo.getGlyphSet()\n        unitsPerEm = float(fontInfo[\"head\"].unitsPerEm)\n        # We keep ALL Unicode cmaps, not just fontInfo[\"cmap\"].getcmap(3, 1).\n        # This is playing it extra safe, since it reports inconsistencies.\n        # Platform 0 is Unicode, platform 3 is Windows. For platform 3,",
+        "detail": "frontend.node_modules.katex.src.metrics.extract_ttfs",
+        "documentation": {}
+    },
+    {
+        "label": "metrics_to_extract",
+        "kind": 5,
+        "importPath": "frontend.node_modules.katex.src.metrics.extract_ttfs",
+        "description": "frontend.node_modules.katex.src.metrics.extract_ttfs",
+        "peekOfCode": "metrics_to_extract = {\n    # Font name\n    \"AMS-Regular\": {\n        u\"\\u21e2\": None,  # \\dashrightarrow\n        u\"\\u21e0\": None,  # \\dashleftarrow\n    },\n    \"Main-Regular\": {\n        # Skew and italic metrics can't be easily parsed from the TTF. Instead,\n        # we map each character to a \"base character\", which is a character\n        # from the same font with correct italic and skew metrics. A character",
+        "detail": "frontend.node_modules.katex.src.metrics.extract_ttfs",
+        "documentation": {}
+    },
+    {
+        "label": "props",
+        "kind": 5,
+        "importPath": "frontend.node_modules.katex.src.metrics.format_json",
+        "description": "frontend.node_modules.katex.src.metrics.format_json",
+        "peekOfCode": "props = ['depth', 'height', 'italic', 'skew']\nif len(sys.argv) > 1:\n    if sys.argv[1] == '--width':\n        props.append('width')\ndata = json.load(sys.stdin)\nsys.stdout.write(\n  \"// This file is GENERATED by buildMetrics.sh. DO NOT MODIFY.\\n\")\nsep = \"export default {\\n    \"\nfor font in sorted(data):\n    sys.stdout.write(sep + json.dumps(font))",
+        "detail": "frontend.node_modules.katex.src.metrics.format_json",
+        "documentation": {}
+    },
+    {
+        "label": "data",
+        "kind": 5,
+        "importPath": "frontend.node_modules.katex.src.metrics.format_json",
+        "description": "frontend.node_modules.katex.src.metrics.format_json",
+        "peekOfCode": "data = json.load(sys.stdin)\nsys.stdout.write(\n  \"// This file is GENERATED by buildMetrics.sh. DO NOT MODIFY.\\n\")\nsep = \"export default {\\n    \"\nfor font in sorted(data):\n    sys.stdout.write(sep + json.dumps(font))\n    sep = \": {\\n        \"\n    for glyph in sorted(data[font], key=int):\n        sys.stdout.write(sep + json.dumps(glyph) + \": \")\n        values = [value if value != 0.0 else 0 for value in",
+        "detail": "frontend.node_modules.katex.src.metrics.format_json",
+        "documentation": {}
+    },
+    {
+        "label": "sep",
+        "kind": 5,
+        "importPath": "frontend.node_modules.katex.src.metrics.format_json",
+        "description": "frontend.node_modules.katex.src.metrics.format_json",
+        "peekOfCode": "sep = \"export default {\\n    \"\nfor font in sorted(data):\n    sys.stdout.write(sep + json.dumps(font))\n    sep = \": {\\n        \"\n    for glyph in sorted(data[font], key=int):\n        sys.stdout.write(sep + json.dumps(glyph) + \": \")\n        values = [value if value != 0.0 else 0 for value in\n                  [data[font][glyph][key] for key in props]]\n        sys.stdout.write(json.dumps(values))\n        sep = \",\\n        \"",
+        "detail": "frontend.node_modules.katex.src.metrics.format_json",
+        "documentation": {}
+    },
+    {
+        "label": "CharInfoWord",
+        "kind": 6,
+        "importPath": "frontend.node_modules.katex.src.metrics.parse_tfm",
+        "description": "frontend.node_modules.katex.src.metrics.parse_tfm",
+        "peekOfCode": "class CharInfoWord(object):\n    def __init__(self, word):\n        b1, b2, b3, b4 = (word >> 24,\n                          (word & 0xff0000) >> 16,\n                          (word & 0xff00) >> 8,\n                          word & 0xff)\n        self.width_index = b1\n        self.height_index = b2 >> 4\n        self.depth_index = b2 & 0x0f\n        self.italic_index = (b3 & 0b11111100) >> 2",
+        "detail": "frontend.node_modules.katex.src.metrics.parse_tfm",
+        "documentation": {}
+    },
+    {
+        "label": "LigKernProgram",
+        "kind": 6,
+        "importPath": "frontend.node_modules.katex.src.metrics.parse_tfm",
+        "description": "frontend.node_modules.katex.src.metrics.parse_tfm",
+        "peekOfCode": "class LigKernProgram(object):\n    def __init__(self, program):\n        self.program = program\n    def execute(self, start, next_char):\n        curr_instruction = start\n        while True:\n            instruction = self.program[curr_instruction]\n            (skip, inst_next_char, op, remainder) = instruction\n            if inst_next_char == next_char:\n                if op < 128:",
+        "detail": "frontend.node_modules.katex.src.metrics.parse_tfm",
+        "documentation": {}
+    },
+    {
+        "label": "TfmCharMetrics",
+        "kind": 6,
+        "importPath": "frontend.node_modules.katex.src.metrics.parse_tfm",
+        "description": "frontend.node_modules.katex.src.metrics.parse_tfm",
+        "peekOfCode": "class TfmCharMetrics(object):\n    def __init__(self, width, height, depth, italic, kern_table):\n        self.width = width\n        self.height = height\n        self.depth = depth\n        self.italic_correction = italic\n        self.kern_table = kern_table\nclass TfmFile(object):\n    def __init__(self, start_char, end_char, char_info, width_table,\n                 height_table, depth_table, italic_table, ligkern_table,",
+        "detail": "frontend.node_modules.katex.src.metrics.parse_tfm",
+        "documentation": {}
+    },
+    {
+        "label": "TfmFile",
+        "kind": 6,
+        "importPath": "frontend.node_modules.katex.src.metrics.parse_tfm",
+        "description": "frontend.node_modules.katex.src.metrics.parse_tfm",
+        "peekOfCode": "class TfmFile(object):\n    def __init__(self, start_char, end_char, char_info, width_table,\n                 height_table, depth_table, italic_table, ligkern_table,\n                 kern_table):\n        self.start_char = start_char\n        self.end_char = end_char\n        self.char_info = char_info\n        self.width_table = width_table\n        self.height_table = height_table\n        self.depth_table = depth_table",
+        "detail": "frontend.node_modules.katex.src.metrics.parse_tfm",
+        "documentation": {}
+    },
+    {
+        "label": "TfmReader",
+        "kind": 6,
+        "importPath": "frontend.node_modules.katex.src.metrics.parse_tfm",
+        "description": "frontend.node_modules.katex.src.metrics.parse_tfm",
+        "peekOfCode": "class TfmReader(object):\n    def __init__(self, f):\n        self.f = f\n    def read_byte(self):\n        return ord(self.f.read(1))\n    def read_halfword(self):\n        b1 = self.read_byte()\n        b2 = self.read_byte()\n        return (b1 << 8) | b2\n    def read_word(self):",
+        "detail": "frontend.node_modules.katex.src.metrics.parse_tfm",
+        "documentation": {}
+    },
+    {
+        "label": "read_tfm_file",
+        "kind": 2,
+        "importPath": "frontend.node_modules.katex.src.metrics.parse_tfm",
+        "description": "frontend.node_modules.katex.src.metrics.parse_tfm",
+        "peekOfCode": "def read_tfm_file(file_name):\n    with open(file_name, 'rb') as f:\n        reader = TfmReader(f)\n        # file_size\n        reader.read_halfword()\n        header_size = reader.read_halfword()\n        start_char = reader.read_halfword()\n        end_char = reader.read_halfword()\n        width_table_size = reader.read_halfword()\n        height_table_size = reader.read_halfword()",
+        "detail": "frontend.node_modules.katex.src.metrics.parse_tfm",
+        "documentation": {}
+    }
+]
