@@ -374,7 +374,9 @@ def _call_vlm(
 
 
 def audit_multimodal(
-    bundle: ArticleBundle, checklist: Optional[List[str]] = None
+    bundle: ArticleBundle,
+    checklist: Optional[List[str]] = None,
+    reference_context: str = "",
 ) -> List[Issue]:
     """Call Qwen VLM with an image and structured summary to check consistency."""
 
@@ -391,6 +393,7 @@ def audit_multimodal(
     summary = {
         "source_url": bundle.source_url,
         "checklist": checklist,
+        "reference_context": (reference_context or "")[:6000],
         "target_image": {
             "filename": image_path.name,
             "width": width,

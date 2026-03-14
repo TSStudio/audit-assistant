@@ -5,9 +5,11 @@ from typing import List, Optional, Tuple
 from uuid import uuid4
 
 from .capture import capture_article
+from .ingest import build_bundle_from_upload
 from .llm_multimodal import audit_multimodal
 from .llm_text import audit_text
 from .parser import enrich_bundle
+from .rag import retrieve_reference_context
 from .schema import (
     ArticleBundle,
     AuditStatusResponse,
@@ -19,13 +21,29 @@ from .store import create_task, get_task, update_task
 from .vision import analyze_images
 
 
-def start_audit(url: str, checklist: Optional[List[str]] = None) -> AuditStatusResponse:
-    record = create_task(str(url), checklist=checklist or [])
+def start_audit(
+    source_label: str,
+    checklist: Optional[List[str]] = None,
+    *,
+    source_mode: str = "url",
+    upload_filename: Optional[str] = None,
+    upload_content: Optional[bytes] = None,
+    reference_docs: Optional[List[dict]] = None,
+) -> AuditStatusResponse:
+    record = create_task(str(source_label), checklist=checklist or [])
     task_id = record["task_id"]
 
     thread = Thread(
         target=_run_pipeline,
-        args=(task_id, str(url), record.get("checklist") or []),
+        args=(
+            task_id,
+            str(source_label),
+            record.get("checklist") or [],
+            source_mode,
+            upload_filename,
+            upload_content,
+            reference_docs or [],
+        ),
         daemon=True,
     )
     thread.start()
@@ -42,10 +60,24 @@ def start_audit(url: str, checklist: Optional[List[str]] = None) -> AuditStatusR
 
 
 def _run_pipeline(
-    task_id: str, url: str, checklist: Optional[List[str]] = None
+    task_id: str,
+    source_label: str,
+    checklist: Optional[List[str]] = None,
+    source_mode: str = "url",
+    upload_filename: Optional[str] = None,
+    upload_content: Optional[bytes] = None,
+    reference_docs: Optional[List[dict]] = None,
 ) -> None:
     try:
-        bundle, issues = run_pipeline(task_id, url, checklist=checklist or [])
+        bundle, issues = run_pipeline(
+            task_id,
+            source_label,
+            checklist=checklist or [],
+            source_mode=source_mode,
+            upload_filename=upload_filename,
+            upload_content=upload_content,
+            reference_docs=reference_docs or [],
+        )
         complete_task(task_id, bundle, issues)
     except Exception as exc:  # noqa: BLE001
         fail_task(task_id, f"Audit failed: {exc}")
@@ -188,27 +220,66 @@ def _attach_bboxes_from_text_blocks(
 
 
 def run_pipeline(
-    task_id: str, url: str, checklist: Optional[List[str]] = None
+    task_id: str,
+    source_label: str,
+    checklist: Optional[List[str]] = None,
+    source_mode: str = "url",
+    upload_filename: Optional[str] = None,
+    upload_content: Optional[bytes] = None,
+    reference_docs: Optional[List[dict]] = None,
 ) -> Tuple[ArticleBundle, list[Issue]]:
     """Run the full audit pipeline synchronously with progress updates."""
 
-    _update_progress(task_id, 5, "Starting capture")
-    bundle = capture_article(url)
+    disable_multimodal = False
 
-    _update_progress(task_id, 25, "Parsing & enriching")
-    bundle = enrich_bundle(bundle, url)
+    if source_mode == "upload":
+        _update_progress(task_id, 5, "Parsing uploaded file")
+        if not upload_filename or upload_content is None:
+            raise RuntimeError("Upload payload missing")
+        bundle, _, disable_multimodal = build_bundle_from_upload(
+            upload_filename,
+            upload_content,
+        )
+    else:
+        _update_progress(task_id, 5, "Starting capture")
+        bundle = capture_article(source_label)
+
+        _update_progress(task_id, 25, "Parsing & enriching")
+        bundle = enrich_bundle(bundle, source_label)
 
     _update_progress(task_id, 45, "Analyzing images")
     bundle = analyze_images(bundle)
 
+    query_parts: List[str] = []
+    if checklist:
+        query_parts.extend(checklist)
+    if bundle.text_blocks:
+        query_parts.append("\n".join([blk.text for blk in bundle.text_blocks[:15]]))
+    if bundle.source_url:
+        query_parts.append(f"source={bundle.source_url}")
+    rag_query = "\n".join([p for p in query_parts if p]).strip()
+    rag_context = retrieve_reference_context(reference_docs or [], rag_query)
+
     _update_progress(task_id, 65, "Text LLM audit")
-    issues_text = audit_text(bundle, checklist=checklist or [])
+    issues_text = audit_text(
+        bundle,
+        checklist=checklist or [],
+        reference_context=rag_context,
+    )
 
     # Attach bounding boxes from captured text blocks so the frontend can render directly.
     issues_text = _attach_bboxes_from_text_blocks(bundle, issues_text)
 
-    _update_progress(task_id, 85, "Multimodal LLM audit")
-    issues_mm = audit_multimodal(bundle, checklist=checklist or [])
+    if disable_multimodal:
+        _update_progress(task_id, 85, "Multimodal skipped for txt upload")
+        issues_mm = []
+    else:
+        _update_progress(task_id, 85, "Multimodal LLM audit")
+        issues_mm = audit_multimodal(
+            bundle,
+            checklist=checklist or [],
+            reference_context=rag_context,
+        )
 
     issues = issues_text + issues_mm
     try:

@@ -4,28 +4,67 @@
             <div class="card-head">
                 <div>
                     <p class="eyebrow">步骤 1</p>
-                    <h2>提交要审计的 URL</h2>
+                    <h2>提交要审计的内容</h2>
                     <p class="muted">
-                        后端将抓取页面并调用文本与多模态模型完成审计。
+                        支持 URL 或上传
+                        txt/docx/pdf/图片，后端会按类型走不同流程。
                     </p>
                 </div>
                 <div class="status-chip" :class="statusClass">
                     {{ statusLabel }}
                 </div>
             </div>
+            <div class="mode-switch">
+                <button
+                    class="ghost"
+                    :class="{ active: inputMode === 'url' }"
+                    :disabled="loading"
+                    @click="switchMode('url')"
+                >
+                    URL
+                </button>
+                <button
+                    class="ghost"
+                    :class="{ active: inputMode === 'file' }"
+                    :disabled="loading"
+                    @click="switchMode('file')"
+                >
+                    文件上传
+                </button>
+            </div>
             <div class="form-row">
-                <label for="urlInput">页面链接</label>
+                <template v-if="inputMode === 'url'">
+                    <label for="urlInput">页面链接</label>
+                    <div class="input-group">
+                        <input
+                            id="urlInput"
+                            v-model="urlInput"
+                            type="url"
+                            placeholder="https://example.com/article"
+                            :disabled="loading"
+                        />
+                    </div>
+                </template>
+                <template v-else>
+                    <label for="fileInput">上传文件</label>
+                    <div class="input-group file-group">
+                        <input
+                            id="fileInput"
+                            ref="fileInputRef"
+                            type="file"
+                            accept=".txt,.docx,.pdf,image/*"
+                            :disabled="loading"
+                            @change="onFileChange"
+                        />
+                        <span class="file-name">{{
+                            selectedFileName || "未选择文件"
+                        }}</span>
+                    </div>
+                </template>
                 <div class="input-group">
-                    <input
-                        id="urlInput"
-                        v-model="urlInput"
-                        type="url"
-                        placeholder="https://example.com/article"
-                        :disabled="loading"
-                    />
                     <button
                         class="primary"
-                        :disabled="loading || !urlInput"
+                        :disabled="loading || !canStartAudit"
                         @click="startAudit"
                     >
                         {{ loading ? "提交中..." : "开始审计" }}
@@ -42,6 +81,21 @@
 日期一致性检查"
                     :disabled="loading"
                 ></textarea>
+                <label for="referenceFilesInput"
+                    >附加资料（可选，txt/docx/pdf，可多选）</label
+                >
+                <div class="input-group file-group">
+                    <input
+                        id="referenceFilesInput"
+                        ref="referenceFileInputRef"
+                        type="file"
+                        accept=".txt,.docx,.pdf"
+                        multiple
+                        :disabled="loading"
+                        @change="onReferenceFilesChange"
+                    />
+                    <span class="file-name">{{ referenceFileNamesText }}</span>
+                </div>
                 <p v-if="error" class="error">{{ error }}</p>
                 <p v-if="taskId" class="task-id">任务 ID：{{ taskId }}</p>
             </div>
@@ -75,7 +129,7 @@
                 <span class="pill">{{ taskHistory.length }} 条</span>
             </div>
             <div v-if="!taskHistory.length" class="empty">
-                <p>暂无历史任务。提交 URL 后会自动记录。</p>
+                <p>暂无历史任务。提交 URL 或文件后会自动记录。</p>
             </div>
             <div v-else class="task-list">
                 <div
@@ -86,7 +140,9 @@
                 >
                     <div class="task-main">
                         <div class="task-title">
-                            <span class="task-url">{{ item.url }}</span>
+                            <span class="task-url">{{
+                                item.source_label || item.url
+                            }}</span>
                             <span class="task-status" :class="item.status">
                                 {{ statusText(item.status) }}
                             </span>
@@ -131,8 +187,15 @@
                 <span class="pill">{{ displayIssues.length }} 个问题</span>
             </div>
 
-            <div class="review-toolbar" v-if="screenshotSrc || displayIssues.length">
-                <button class="ghost" :disabled="!customIssues.length" @click="clearCustomIssues">
+            <div
+                class="review-toolbar"
+                v-if="screenshotSrc || displayIssues.length"
+            >
+                <button
+                    class="ghost"
+                    :disabled="!customIssues.length"
+                    @click="clearCustomIssues"
+                >
                     清空手工批注
                 </button>
             </div>
@@ -142,8 +205,14 @@
                 <span>已驳回 {{ decisionStats.rejected }}</span>
             </div>
 
-            <div v-if="!screenshotSrc && displayIssues.length === 0" class="empty">
-                <p>尚未生成问题列表。提交 URL 并等待审计完成即可查看结果。</p>
+            <div
+                v-if="!screenshotSrc && displayIssues.length === 0"
+                class="empty"
+            >
+                <p>
+                    尚未生成问题列表。提交 URL
+                    或文件并等待审计完成即可查看结果。
+                </p>
             </div>
 
             <div
@@ -154,7 +223,7 @@
             >
                 <div class="export-head">
                     <h3>智慧审查报告</h3>
-                    <p>URL：{{ urlInput || "(未填写)" }}</p>
+                    <p>来源：{{ currentSourceLabel }}</p>
                     <p>导出时间：{{ new Date().toLocaleString() }}</p>
                 </div>
 
@@ -199,7 +268,10 @@
                         <div v-else class="empty">暂无截图。</div>
                     </div>
 
-                    <div class="issues-pane" :style="{ height: `${issuesPaneRenderHeight}px` }">
+                    <div
+                        class="issues-pane"
+                        :style="{ height: `${issuesPaneRenderHeight}px` }"
+                    >
                         <template v-if="positionedIssues.length">
                             <div
                                 v-for="item in positionedIssues"
@@ -216,15 +288,39 @@
                                 @mouseleave="hoverIssueId = null"
                             >
                                 <div class="issue-top">
-                                    <span class="badge" :class="`sev-${item.issue.severity || 'info'}`">
+                                    <span
+                                        class="badge"
+                                        :class="`sev-${item.issue.severity || 'info'}`"
+                                    >
                                         {{ item.issue.severity || "info" }}
                                     </span>
-                                    <span class="type">{{ item.issue.type || "custom" }}</span>
-                                    <span v-if="item.issue.confidence" class="confidence">
-                                        置信度 {{ Number(item.issue.confidence).toFixed(2) }}
+                                    <span class="type">{{
+                                        item.issue.type || "custom"
+                                    }}</span>
+                                    <span
+                                        v-if="item.issue.confidence"
+                                        class="confidence"
+                                    >
+                                        置信度
+                                        {{
+                                            Number(
+                                                item.issue.confidence,
+                                            ).toFixed(2)
+                                        }}
                                     </span>
-                                    <span class="decision" :class="isRejected(item.issue.id) ? 'decision-rejected' : 'decision-kept'">
-                                        {{ isRejected(item.issue.id) ? "已驳回" : "已保留" }}
+                                    <span
+                                        class="decision"
+                                        :class="
+                                            isRejected(item.issue.id)
+                                                ? 'decision-rejected'
+                                                : 'decision-kept'
+                                        "
+                                    >
+                                        {{
+                                            isRejected(item.issue.id)
+                                                ? "已驳回"
+                                                : "已保留"
+                                        }}
                                     </span>
                                 </div>
 
@@ -247,16 +343,24 @@
                                     <button
                                         class="mini-btn danger"
                                         v-if="item.issue.manual"
-                                        @click="removeCustomIssue(item.issue.id)"
+                                        @click="
+                                            removeCustomIssue(item.issue.id)
+                                        "
                                     >
                                         删除批注
                                     </button>
                                 </div>
 
-                                <p v-if="item.issue.evidence?.quote" class="quote">
+                                <p
+                                    v-if="item.issue.evidence?.quote"
+                                    class="quote"
+                                >
                                     “{{ item.issue.evidence.quote }}”
                                 </p>
-                                <p v-if="item.issue.recommendation" class="recommend">
+                                <p
+                                    v-if="item.issue.recommendation"
+                                    class="recommend"
+                                >
                                     建议：{{ item.issue.recommendation }}
                                 </p>
 
@@ -266,13 +370,24 @@
                                         class="annotation-input"
                                         :value="noteForIssue(item.issue.id)"
                                         placeholder="输入你的审校意见..."
-                                        @input="updateNote(item.issue.id, $event.target.value)"
+                                        @input="
+                                            updateNote(
+                                                item.issue.id,
+                                                $event.target.value,
+                                            )
+                                        "
                                     ></textarea>
                                 </template>
 
                                 <div class="meta">
-                                    <span v-if="item.issue.evidence?.text_block_id">
-                                        文本段落：{{ item.issue.evidence.text_block_id }}
+                                    <span
+                                        v-if="
+                                            item.issue.evidence?.text_block_id
+                                        "
+                                    >
+                                        文本段落：{{
+                                            item.issue.evidence.text_block_id
+                                        }}
                                     </span>
                                     <span v-if="item.issue.evidence?.image_id">
                                         图片：{{ item.issue.evidence.image_id }}
@@ -280,7 +395,9 @@
                                     <span v-if="item.issue.evidence?.link_id">
                                         链接：{{ item.issue.evidence.link_id }}
                                     </span>
-                                    <span v-if="item.issue.manual">手工批注</span>
+                                    <span v-if="item.issue.manual"
+                                        >手工批注</span
+                                    >
                                 </div>
                             </div>
                         </template>
@@ -289,7 +406,10 @@
                 </div>
             </div>
         </div>
-        <div class="floating-actions" v-if="screenshotSrc || displayIssues.length">
+        <div
+            class="floating-actions"
+            v-if="screenshotSrc || displayIssues.length"
+        >
             <button
                 class="fab fab-draw"
                 :class="{ active: drawingMode }"
@@ -300,7 +420,9 @@
             </button>
             <button
                 class="fab fab-export"
-                :disabled="exportingPdf || (!screenshotSrc && !displayIssues.length)"
+                :disabled="
+                    exportingPdf || (!screenshotSrc && !displayIssues.length)
+                "
                 @click="exportPdf"
             >
                 {{ exportingPdf ? "导出中..." : "导出 PDF" }}
@@ -317,7 +439,12 @@ const API_BASE =
         ? "http://localhost:8000/api"
         : "/api";
 
+const inputMode = ref("url");
 const urlInput = ref("");
+const selectedFile = ref(null);
+const fileInputRef = ref(null);
+const referenceFiles = ref([]);
+const referenceFileInputRef = ref(null);
 const checklistInput = ref("");
 const taskId = ref("");
 const status = ref("");
@@ -338,6 +465,12 @@ let easeTimer = null;
 const hoverIssueId = ref(null);
 const taskHistory = ref([]);
 const historyKey = "audit_task_history";
+const currentSourceMeta = ref({
+    source_type: "url",
+    source_label: "",
+    url: "",
+    file_name: "",
+});
 
 const shotImg = ref(null);
 const shotWrapper = ref(null);
@@ -378,17 +511,53 @@ const progressWidth = computed(() => {
     return "0%";
 });
 
+const selectedFileName = computed(() => selectedFile.value?.name || "");
+const referenceFileNamesText = computed(() => {
+    if (!referenceFiles.value.length) return "未选择附加资料";
+    if (referenceFiles.value.length === 1) return referenceFiles.value[0].name;
+    return `已选择 ${referenceFiles.value.length} 个文件`;
+});
+
+const canStartAudit = computed(() => {
+    if (inputMode.value === "url") return !!urlInput.value.trim();
+    return !!selectedFile.value;
+});
+
+const currentSourceLabel = computed(() => {
+    const explicit = currentSourceMeta.value?.source_label;
+    if (explicit) return explicit;
+    if (inputMode.value === "url") return urlInput.value || "(未填写)";
+    return selectedFileName.value || "(未选择文件)";
+});
+
 const apiOrigin = computed(() => {
     if (API_BASE.startsWith("http")) return API_BASE.replace(/\/api$/, "");
     return "";
 });
 
+function toCaptureRelativePath(filePath) {
+    const normalized = String(filePath || "").replace(/\\/g, "/");
+    const marker = "/captures/";
+    const markerIdx = normalized.lastIndexOf(marker);
+    let rel = "";
+    if (markerIdx >= 0) {
+        rel = normalized.slice(markerIdx + marker.length);
+    } else {
+        rel = normalized.split("/").pop() || "";
+    }
+    return rel
+        .split("/")
+        .filter(Boolean)
+        .map((seg) => encodeURIComponent(seg))
+        .join("/");
+}
+
 const screenshotSrc = computed(() => {
     const file = bundle.value?.screenshots?.[0]?.filename;
     if (!file) return "";
-    const name = file.split(/[/\\]/).pop();
-    if (!name) return "";
-    return `${apiOrigin.value}/api/captures/${name}`;
+    const relPath = toCaptureRelativePath(file);
+    if (!relPath) return "";
+    return `${apiOrigin.value}/api/captures/${relPath}`;
 });
 
 const displayIssues = computed(() => {
@@ -493,6 +662,32 @@ function resetState() {
     drawCurrent.value = null;
 }
 
+function switchMode(mode) {
+    if (loading.value) return;
+    inputMode.value = mode;
+    error.value = "";
+    if (mode === "url") {
+        selectedFile.value = null;
+        if (fileInputRef.value) fileInputRef.value.value = "";
+    }
+}
+
+function onFileChange(event) {
+    const file = event?.target?.files?.[0] || null;
+    selectedFile.value = file;
+}
+
+function onReferenceFilesChange(event) {
+    const files = Array.from(event?.target?.files || []);
+    referenceFiles.value = files;
+}
+
+function appendReferenceFiles(formData) {
+    for (const f of referenceFiles.value) {
+        formData.append("reference_files", f);
+    }
+}
+
 function stopEaseTimer() {
     if (easeTimer) {
         clearInterval(easeTimer);
@@ -580,26 +775,62 @@ function formatChecklist(list) {
 }
 
 async function startAudit() {
-    if (!urlInput.value) {
-        error.value = "请输入有效的 URL";
-        return;
+    const checklist = parseChecklist(checklistInput.value);
+    let resp;
+    let sourceMeta;
+
+    if (inputMode.value === "url") {
+        if (!urlInput.value.trim()) {
+            error.value = "请输入有效的 URL";
+            return;
+        }
+        sourceMeta = {
+            source_type: "url",
+            source_label: urlInput.value.trim(),
+            url: urlInput.value.trim(),
+            file_name: "",
+        };
+    } else {
+        if (!selectedFile.value) {
+            error.value = "请先选择要上传的文件";
+            return;
+        }
+        sourceMeta = {
+            source_type: "file",
+            source_label: `[上传] ${selectedFile.value.name}`,
+            url: "",
+            file_name: selectedFile.value.name,
+        };
     }
 
     resetState();
     loading.value = true;
     try {
-        const resp = await fetch(`${API_BASE}/audit`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                url: urlInput.value.trim(),
-                checklist: parseChecklist(checklistInput.value),
-            }),
-        });
+        if (inputMode.value === "url") {
+            const form = new FormData();
+            form.append("url", urlInput.value.trim());
+            form.append("checklist", JSON.stringify(checklist));
+            appendReferenceFiles(form);
+            resp = await fetch(`${API_BASE}/audit/url`, {
+                method: "POST",
+                body: form,
+            });
+        } else {
+            const form = new FormData();
+            form.append("file", selectedFile.value);
+            form.append("checklist", JSON.stringify(checklist));
+            appendReferenceFiles(form);
+            resp = await fetch(`${API_BASE}/audit/upload`, {
+                method: "POST",
+                body: form,
+            });
+        }
+
         if (!resp.ok) throw new Error(`提交失败：${resp.status}`);
         const data = await resp.json();
         taskId.value = data.task_id;
         status.value = data.status;
+        currentSourceMeta.value = sourceMeta;
         const msgFallback = "任务已创建，正在启动审计...";
         message.value = data.message || msgFallback;
         issues.value = normalizeIssues(data.issues || []);
@@ -607,8 +838,11 @@ async function startAudit() {
 
         upsertHistory({
             task_id: data.task_id,
-            url: urlInput.value.trim(),
-            checklist: parseChecklist(checklistInput.value),
+            url: sourceMeta.url,
+            source_type: sourceMeta.source_type,
+            source_label: sourceMeta.source_label,
+            file_name: sourceMeta.file_name,
+            checklist,
             status: data.status,
             progress: data.progress ?? 0,
             updated_at: Math.floor(Date.now() / 1000),
@@ -662,7 +896,11 @@ async function pollStatus() {
 
         upsertHistory({
             task_id: data.task_id,
-            url: urlInput.value.trim(),
+            url: currentSourceMeta.value?.url || "",
+            source_type: currentSourceMeta.value?.source_type || "url",
+            source_label:
+                currentSourceMeta.value?.source_label || urlInput.value.trim(),
+            file_name: currentSourceMeta.value?.file_name || "",
             checklist: Array.isArray(data.checklist)
                 ? data.checklist
                 : parseChecklist(checklistInput.value),
@@ -692,7 +930,19 @@ onBeforeUnmount(() => {
 function loadTask(item) {
     if (!item?.task_id) return;
     resetState();
+    currentSourceMeta.value = {
+        source_type: item.source_type || "url",
+        source_label: item.source_label || item.url || "",
+        url: item.url || "",
+        file_name: item.file_name || "",
+    };
+    inputMode.value =
+        currentSourceMeta.value.source_type === "url" ? "url" : "file";
     urlInput.value = item.url || "";
+    selectedFile.value = null;
+    if (fileInputRef.value) fileInputRef.value.value = "";
+    referenceFiles.value = [];
+    if (referenceFileInputRef.value) referenceFileInputRef.value.value = "";
     checklistInput.value = (item.checklist || []).join("\n");
     taskId.value = item.task_id;
     status.value = item.status || "";
@@ -705,12 +955,21 @@ function loadTask(item) {
 }
 
 function rerunTask(item) {
+    if (item?.source_type && item.source_type !== "url") {
+        error.value = "上传任务无法直接重跑，请重新选择文件后提交。";
+        return;
+    }
     if (!item?.url) return;
+    switchMode("url");
     urlInput.value = item.url;
     startAudit();
 }
 
 function rerunCurrent() {
+    if (inputMode.value !== "url") {
+        error.value = "上传任务无法直接重跑，请重新选择文件后提交。";
+        return;
+    }
     if (!urlInput.value) return;
     startAudit();
 }
@@ -781,7 +1040,9 @@ function updateNote(issueId, text) {
 }
 
 function removeCustomIssue(issueId) {
-    customIssues.value = customIssues.value.filter((item) => item.id !== issueId);
+    customIssues.value = customIssues.value.filter(
+        (item) => item.id !== issueId,
+    );
     const nextDecisions = { ...decisionMap.value };
     const nextNotes = { ...noteMap.value };
     delete nextDecisions[issueId];
@@ -952,43 +1213,43 @@ async function exportPdf() {
     exportMode.value = true;
     await nextTick();
 
-        try {
-            const html2canvas = await loadHtml2Canvas();
-            const jsPDF = await loadJsPdf();
+    try {
+        const html2canvas = await loadHtml2Canvas();
+        const jsPDF = await loadJsPdf();
 
-            const canvas = await html2canvas(resultCard.value, {
-                scale: 2,
-                useCORS: true,
-                allowTaint: false,
-                backgroundColor: "#0b1021",
-                windowWidth: document.documentElement.scrollWidth,
-                windowHeight: document.documentElement.scrollHeight,
-                scrollX: 0,
-                scrollY: -window.scrollY,
-            });
+        const canvas = await html2canvas(resultCard.value, {
+            scale: 2,
+            useCORS: true,
+            allowTaint: false,
+            backgroundColor: "#0b1021",
+            windowWidth: document.documentElement.scrollWidth,
+            windowHeight: document.documentElement.scrollHeight,
+            scrollX: 0,
+            scrollY: -window.scrollY,
+        });
 
-            const imageData = canvas.toDataURL("image/png");
-            const pdf = new jsPDF("p", "mm", "a4");
-            const pageWidth = pdf.internal.pageSize.getWidth();
-            const pageHeight = pdf.internal.pageSize.getHeight();
-            const margin = 6;
-            const imgWidth = pageWidth - margin * 2;
-            const imgHeight = (canvas.height * imgWidth) / canvas.width;
+        const imageData = canvas.toDataURL("image/png");
+        const pdf = new jsPDF("p", "mm", "a4");
+        const pageWidth = pdf.internal.pageSize.getWidth();
+        const pageHeight = pdf.internal.pageSize.getHeight();
+        const margin = 6;
+        const imgWidth = pageWidth - margin * 2;
+        const imgHeight = (canvas.height * imgWidth) / canvas.width;
 
-            let remainHeight = imgHeight;
-            let y = margin;
+        let remainHeight = imgHeight;
+        let y = margin;
 
+        pdf.addImage(imageData, "PNG", margin, y, imgWidth, imgHeight);
+        remainHeight -= pageHeight - margin * 2;
+
+        while (remainHeight > 0) {
+            pdf.addPage();
+            y = margin - (imgHeight - remainHeight);
             pdf.addImage(imageData, "PNG", margin, y, imgWidth, imgHeight);
             remainHeight -= pageHeight - margin * 2;
+        }
 
-            while (remainHeight > 0) {
-                pdf.addPage();
-                y = margin - (imgHeight - remainHeight);
-                pdf.addImage(imageData, "PNG", margin, y, imgWidth, imgHeight);
-                remainHeight -= pageHeight - margin * 2;
-            }
-
-            pdf.save(`audit-report-${Date.now()}.pdf`);
+        pdf.save(`audit-report-${Date.now()}.pdf`);
     } catch (e) {
         error.value = e?.message || "导出 PDF 失败";
     } finally {
@@ -997,38 +1258,42 @@ async function exportPdf() {
     }
 }
 
-    async function loadScriptOnce(url) {
-        if (typeof window === "undefined") return;
-        const exists = Array.from(document.scripts).some((s) => s.src === url);
-        if (exists) return;
-        await new Promise((resolve, reject) => {
-            const script = document.createElement("script");
-            script.src = url;
-            script.async = true;
-            script.onload = resolve;
-            script.onerror = () => reject(new Error(`加载脚本失败: ${url}`));
-            document.head.appendChild(script);
-        });
-    }
+async function loadScriptOnce(url) {
+    if (typeof window === "undefined") return;
+    const exists = Array.from(document.scripts).some((s) => s.src === url);
+    if (exists) return;
+    await new Promise((resolve, reject) => {
+        const script = document.createElement("script");
+        script.src = url;
+        script.async = true;
+        script.onload = resolve;
+        script.onerror = () => reject(new Error(`加载脚本失败: ${url}`));
+        document.head.appendChild(script);
+    });
+}
 
-    async function loadHtml2Canvas() {
-        if (window.html2canvas) return window.html2canvas;
-        await loadScriptOnce("https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js");
-        if (!window.html2canvas) {
-            throw new Error("html2canvas 加载失败");
-        }
-        return window.html2canvas;
+async function loadHtml2Canvas() {
+    if (window.html2canvas) return window.html2canvas;
+    await loadScriptOnce(
+        "https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js",
+    );
+    if (!window.html2canvas) {
+        throw new Error("html2canvas 加载失败");
     }
+    return window.html2canvas;
+}
 
-    async function loadJsPdf() {
-        const hasJsPdf = window.jspdf && window.jspdf.jsPDF;
-        if (hasJsPdf) return window.jspdf.jsPDF;
-        await loadScriptOnce("https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js");
-        if (!window.jspdf || !window.jspdf.jsPDF) {
-            throw new Error("jsPDF 加载失败");
-        }
-        return window.jspdf.jsPDF;
+async function loadJsPdf() {
+    const hasJsPdf = window.jspdf && window.jspdf.jsPDF;
+    if (hasJsPdf) return window.jspdf.jsPDF;
+    await loadScriptOnce(
+        "https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js",
+    );
+    if (!window.jspdf || !window.jspdf.jsPDF) {
+        throw new Error("jsPDF 加载失败");
     }
+    return window.jspdf.jsPDF;
+}
 </script>
 
 <style scoped>
@@ -1086,6 +1351,12 @@ h3 {
     gap: 10px;
 }
 
+.mode-switch {
+    margin-top: 14px;
+    display: flex;
+    gap: 8px;
+}
+
 label {
     font-size: 14px;
     color: #d1d5db;
@@ -1104,6 +1375,28 @@ input[type="url"] {
     background: rgba(15, 23, 42, 0.7);
     color: #e5e7eb;
     outline: none;
+}
+
+input[type="file"] {
+    flex: 1;
+    padding: 10px;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: rgba(15, 23, 42, 0.7);
+    color: #e5e7eb;
+}
+
+.file-group {
+    align-items: center;
+}
+
+.file-name {
+    font-size: 12px;
+    color: #9ca3af;
+    max-width: 320px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .checklist {
