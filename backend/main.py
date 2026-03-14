@@ -74,6 +74,7 @@ def create_audit(
     return start_audit(
         str(request.url),
         checklist=request.checklist,
+        fast_mode=request.fast_mode,
         source_mode="url",
         user_token=token,
     )
@@ -123,10 +124,22 @@ def _parse_form_checklist(raw: str) -> List[str]:
     return [line.strip() for line in value.splitlines() if line.strip()]
 
 
+def _parse_form_bool(raw: str, default: bool = False) -> bool:
+    value = (raw or "").strip().lower()
+    if not value:
+        return default
+    if value in {"1", "true", "yes", "on"}:
+        return True
+    if value in {"0", "false", "no", "off"}:
+        return False
+    return default
+
+
 @app.post("/api/audit/upload", response_model=AuditStatusResponse)
 async def create_audit_upload(
     file: UploadFile = File(...),
     checklist: str = Form(default="[]"),
+    fast_mode: str = Form(default="false"),
     checklist_ids: str = Form(default="[]"),
     reference_ids: str = Form(default="[]"),
     reference_files: List[UploadFile] = File(default=[]),
@@ -148,6 +161,7 @@ async def create_audit_upload(
     parsed_checklist = _parse_form_checklist(checklist)
     selected_checklist_ids = _parse_form_ids(checklist_ids)
     selected_reference_ids = _parse_form_ids(reference_ids)
+    fast_mode_enabled = _parse_form_bool(fast_mode, default=False)
 
     if selected_checklist_ids:
         selected_lists = get_user_checklists_by_ids(token, selected_checklist_ids)
@@ -172,6 +186,7 @@ async def create_audit_upload(
     return start_audit(
         label,
         checklist=parsed_checklist,
+        fast_mode=fast_mode_enabled,
         user_token=token,
         source_mode="upload",
         upload_filename=filename,
@@ -184,6 +199,7 @@ async def create_audit_upload(
 async def create_audit_url(
     url: str = Form(...),
     checklist: str = Form(default="[]"),
+    fast_mode: str = Form(default="false"),
     checklist_ids: str = Form(default="[]"),
     reference_ids: str = Form(default="[]"),
     reference_files: List[UploadFile] = File(default=[]),
@@ -202,6 +218,7 @@ async def create_audit_url(
     parsed_checklist = _parse_form_checklist(checklist)
     selected_checklist_ids = _parse_form_ids(checklist_ids)
     selected_reference_ids = _parse_form_ids(reference_ids)
+    fast_mode_enabled = _parse_form_bool(fast_mode, default=False)
 
     if selected_checklist_ids:
         selected_lists = get_user_checklists_by_ids(token, selected_checklist_ids)
@@ -226,6 +243,7 @@ async def create_audit_url(
     return start_audit(
         raw_url,
         checklist=parsed_checklist,
+        fast_mode=fast_mode_enabled,
         user_token=token,
         source_mode="url",
         reference_docs=reference_docs,

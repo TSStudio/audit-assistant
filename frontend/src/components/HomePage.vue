@@ -182,6 +182,25 @@
                             </button>
                         </div>
 
+                        <div class="mode-switch" style="margin-top: 2px">
+                            <button
+                                class="mode-btn"
+                                :class="{ active: fastMode }"
+                                :disabled="loading"
+                                @click="fastMode = true"
+                            >
+                                Fast Mode（关闭 Thinking）
+                            </button>
+                            <button
+                                class="mode-btn"
+                                :class="{ active: !fastMode }"
+                                :disabled="loading"
+                                @click="fastMode = false"
+                            >
+                                Slow Mode（开启 Thinking）
+                            </button>
+                        </div>
+
                         <label class="form-label"
                             >审核清单知识库
                             <span class="hint-text"
@@ -1034,6 +1053,7 @@ const noteMap = ref({});
 const bundle = ref(null);
 const targetProgress = ref(0);
 const displayProgress = ref(0);
+const fastMode = ref(false);
 const loading = ref(false);
 const exportingPdf = ref(false);
 const exportMode = ref(false);
@@ -1066,14 +1086,27 @@ let easeTimer = null;
 // ── status helpers ────────────────────────────────────────────────────────────
 const statusLabel = computed(
     () =>
-        ({ running: "运行中", completed: "已完成", failed: "失败" })[
-            status.value
-        ] || "待开始",
+        ({
+            running: "运行中",
+            llm_vlm_working: "LLM/VLM并发中",
+            llm_done_vlm_working: "LLM完成，VLM处理中",
+            llm_working_vlm_done: "VLM完成，LLM处理中",
+            llm_vlm_done: "LLM/VLM已完成",
+            completed: "已完成",
+            failed: "失败",
+        })[status.value] || "待开始",
 );
 const statusClass = computed(
     () =>
-        ({ completed: "ok", running: "warn", failed: "err" })[status.value] ||
-        "idle",
+        ({
+            completed: "ok",
+            running: "warn",
+            llm_vlm_working: "warn",
+            llm_done_vlm_working: "warn",
+            llm_working_vlm_done: "warn",
+            llm_vlm_done: "warn",
+            failed: "err",
+        })[status.value] || "idle",
 );
 const progressWidth = computed(() => {
     if (status.value === "failed" || status.value === "completed")
@@ -1081,10 +1114,25 @@ const progressWidth = computed(() => {
     return `${Math.min(displayProgress.value, 100)}%`;
 });
 const dotColor = (s) =>
-    ({ running: "#BA7517", completed: "#639922", failed: "#E24B4A" })[s] ||
-    "#B4B2A9";
+    ({
+        running: "#BA7517",
+        llm_vlm_working: "#BA7517",
+        llm_done_vlm_working: "#BA7517",
+        llm_working_vlm_done: "#BA7517",
+        llm_vlm_done: "#BA7517",
+        completed: "#639922",
+        failed: "#E24B4A",
+    })[s] || "#B4B2A9";
 const statusText = (s) =>
-    ({ running: "运行中", completed: "已完成", failed: "失败" })[s] ||
+    ({
+        running: "运行中",
+        llm_vlm_working: "LLM/VLM并发中",
+        llm_done_vlm_working: "LLM完成，VLM处理中",
+        llm_working_vlm_done: "VLM完成，LLM处理中",
+        llm_vlm_done: "LLM/VLM已完成",
+        completed: "已完成",
+        failed: "失败",
+    })[s] ||
     s ||
     "未知";
 const fmtTime = (ts) => {
@@ -1625,6 +1673,7 @@ async function startAudit() {
             const fd = new FormData();
             fd.append("url", urlInput.value.trim());
             fd.append("checklist", JSON.stringify(cl));
+            fd.append("fast_mode", String(fastMode.value));
             fd.append(
                 "checklist_ids",
                 JSON.stringify(selectedChecklistIds.value),
@@ -1642,6 +1691,7 @@ async function startAudit() {
             const fd = new FormData();
             fd.append("file", selectedFile.value);
             fd.append("checklist", JSON.stringify(cl));
+            fd.append("fast_mode", String(fastMode.value));
             fd.append(
                 "checklist_ids",
                 JSON.stringify(selectedChecklistIds.value),

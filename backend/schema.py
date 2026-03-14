@@ -21,6 +21,10 @@ class IssueType(str, Enum):
 class TaskStatus(str, Enum):
     pending = "pending"
     running = "running"
+    llm_done_vlm_working = "llm_done_vlm_working"
+    llm_working_vlm_done = "llm_working_vlm_done"
+    llm_vlm_working = "llm_vlm_working"
+    llm_vlm_done = "llm_vlm_done"
     completed = "completed"
     failed = "failed"
 
@@ -114,6 +118,7 @@ class ArticleBundle(BaseModel):
 class AuditRequest(BaseModel):
     url: HttpUrl
     checklist: List[str] = Field(default_factory=list)
+    fast_mode: bool = False
 
 
 class AuditStartResponse(BaseModel):
