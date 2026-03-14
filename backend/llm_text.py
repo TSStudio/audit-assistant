@@ -110,9 +110,11 @@ def _merge_key(issue: dict) -> str:
 def merge_llm_vlm_issues(
     issues_text: Optional[List],
     issues_vlm: Optional[List],
-    enable_thinking: bool = False,
 ) -> List[dict]:
-    """Merge text-LLM and VLM issues with text-LLM priority on duplicates."""
+    """Merge text-LLM and VLM issues with text-LLM priority on duplicates.
+
+    Thinking mode is intentionally forced off for deterministic merge behavior.
+    """
 
     text_items = [d for d in (_issue_to_dict(i) for i in (issues_text or [])) if d]
     vlm_items = [d for d in (_issue_to_dict(i) for i in (issues_vlm or [])) if d]
@@ -139,7 +141,7 @@ def merge_llm_vlm_issues(
         f"B_JSON:\n{json.dumps(vlm_items, ensure_ascii=False)[:45000]}"
     )
 
-    raw = _call_llm(prompt, enable_thinking=enable_thinking)
+    raw = _call_llm(prompt, enable_thinking=False)
     merged = _parse_issues(raw) if raw else []
     if isinstance(merged, list) and merged:
         return [d for d in merged if isinstance(d, dict)]

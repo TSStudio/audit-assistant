@@ -395,7 +395,6 @@ def run_pipeline(
     issues = merge_llm_vlm_issues(
         issues_text,
         issues_mm,
-        enable_thinking=False,
     )
     try:
         print(
