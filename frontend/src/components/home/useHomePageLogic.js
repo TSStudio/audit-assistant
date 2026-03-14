@@ -48,6 +48,11 @@ function ensureUserToken() {
 const userToken = ensureUserToken();
 const HISTORY_KEY = `audit_task_history_${userToken}`;
 
+// ★ 真实今日计数 key，按自然日 + 用户 token 隔离
+function todayKey() {
+    return `audit_today_${new Date().toLocaleDateString("zh-CN")}_${userToken}`;
+}
+
 function apiFetch(path, options = {}) {
     const headers = new Headers(options.headers || {});
     headers.set("X-User-Token", userToken);
@@ -150,7 +155,12 @@ export default function useHomePageLogic() {
         file_name: "",
         article_title: "",
     });
-    const todayCount = ref(3);
+
+    // ★ 真实今日计数：从 localStorage 读取当日数值
+    const todayCount = ref(
+        parseInt(localStorage.getItem(todayKey()) || "0", 10),
+    );
+
     const toastMsg = ref("");
     const shotImg = ref(null);
     const shotWrapper = ref(null);
@@ -166,13 +176,19 @@ export default function useHomePageLogic() {
     let easeTimer = null;
     let toastTimer = null;
 
+    // ★ resetState 回调机制，供外部（如 collabVm）注册
+    const _resetCallbacks = [];
+    function onReset(cb) {
+        _resetCallbacks.push(cb);
+    }
+
     const achievements = ref([
         {
             id: 1,
             icon: "⚡",
             name: "审校先锋",
             color: "amber",
-            unlocked: true,
+            unlocked: false,
             goal: "首次审计",
         },
         {
@@ -180,8 +196,8 @@ export default function useHomePageLogic() {
             icon: "🔥",
             name: "连续 7 天",
             color: "green",
-            unlocked: true,
-            goal: "7 天连续",
+            unlocked: false,
+            goal: "完成 3 篇",
         },
         {
             id: 3,
@@ -189,7 +205,7 @@ export default function useHomePageLogic() {
             name: "审校达人",
             color: "blue",
             unlocked: false,
-            goal: "再审 2 篇",
+            goal: "完成 5 篇",
         },
         {
             id: 4,
@@ -197,9 +213,18 @@ export default function useHomePageLogic() {
             name: "精英审校",
             color: "gray",
             unlocked: false,
-            goal: "共 50 篇",
+            goal: "完成 10 篇",
         },
     ]);
+
+    // ★ 根据 todayCount 实时解锁成就
+    function refreshAchievements() {
+        const n = todayCount.value;
+        achievements.value = achievements.value.map((a, i) => {
+            const thresholds = [1, 3, 5, 10];
+            return { ...a, unlocked: n >= thresholds[i] };
+        });
+    }
 
     const displayIssues = computed(() => [
         ...issues.value,
@@ -285,8 +310,8 @@ export default function useHomePageLogic() {
     });
 
     const decisionStats = computed(() => {
-        let kept = 0;
-        let rejected = 0;
+        let kept = 0,
+            rejected = 0;
         for (const i of displayIssues.value)
             isRejected(i.id) ? rejected++ : kept++;
         return { kept, rejected };
@@ -300,19 +325,22 @@ export default function useHomePageLogic() {
 
     const motTitle = computed(() => {
         if (tab.value === "history") return "本周已审 12 篇，进步明显！";
-        if (tab.value === "result" && displayIssues.value.length) {
+        if (tab.value === "result" && displayIssues.value.length)
             return `发现 ${displayIssues.value.length} 个问题，做得很好！`;
-        }
-        return "连续审校 7 天，太厉害了！";
+        return todayCount.value === 0
+            ? "开始今天的第一次审计吧！"
+            : `今日已完成 ${todayCount.value} 篇，继续保持！`;
     });
 
     const motSub = computed(() => {
         if (tab.value === "history")
             return "平均每篇发现 2.4 个问题，比上周减少 30%。";
-        if (tab.value === "result" && displayIssues.value.length) {
+        if (tab.value === "result" && displayIssues.value.length)
             return `你已驳回 ${decisionStats.value.rejected} 条 AI 建议，保持判断力。`;
-        }
-        return "今日已完成 3 篇审计。再审 2 篇即可解锁「审校达人」成就。";
+        const next = achievements.value.find((a) => !a.unlocked);
+        return next
+            ? `再完成更多篇可解锁「${next.name}」成就。`
+            : "所有成就已解锁，厉害了！";
     });
 
     const positionedIssues = computed(() => {
@@ -425,9 +453,8 @@ export default function useHomePageLogic() {
         if (
             isRealTitle(item.source_label) &&
             !/^https?:\/\//i.test(item.source_label)
-        ) {
+        )
             return normalizeText(item.source_label);
-        }
         return derived || "未命名任务";
     }
 
@@ -600,6 +627,8 @@ export default function useHomePageLogic() {
         isDrawing.value = false;
         drawStart.value = null;
         drawCurrent.value = null;
+        // ★ 通知外部（collabVm）重置协作状态
+        for (const cb of _resetCallbacks) cb();
     }
 
     function switchMode(mode) {
@@ -615,7 +644,6 @@ export default function useHomePageLogic() {
     function onFileChange(e) {
         selectedFile.value = e?.target?.files?.[0] || null;
     }
-
     function onReferenceFilesChange(e) {
         referenceFiles.value = Array.from(e?.target?.files || []);
     }
@@ -642,18 +670,18 @@ export default function useHomePageLogic() {
                 error.value = "清单为空，无法保存";
                 return;
             }
-            const payload = {
-                name: (newChecklistName.value || "未命名清单").trim(),
-                items,
-            };
             const resp = await apiFetch("/kb/checklists", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(payload),
+                body: JSON.stringify({
+                    name: (newChecklistName.value || "未命名清单").trim(),
+                    items,
+                }),
             });
             if (!resp.ok) {
-                const txt = await resp.text();
-                throw new Error(txt || `保存清单失败：${resp.status}`);
+                throw new Error(
+                    (await resp.text()) || `保存清单失败：${resp.status}`,
+                );
             }
             const created = await resp.json();
             checklistKbs.value = [created, ...checklistKbs.value];
@@ -680,17 +708,19 @@ export default function useHomePageLogic() {
                 method: "POST",
                 body: fd,
             });
-            if (!resp.ok) {
-                const txt = await resp.text();
-                throw new Error(txt || `保存附加资料失败：${resp.status}`);
-            }
+            if (!resp.ok)
+                throw new Error(
+                    (await resp.text()) || `保存附加资料失败：${resp.status}`,
+                );
             const data = await resp.json();
             const created = Array.isArray(data.items) ? data.items : [];
             if (created.length) {
                 referenceKbs.value = [...created, ...referenceKbs.value];
-                const ids = created.map((i) => i.kb_id);
                 selectedReferenceKbIds.value = [
-                    ...new Set([...ids, ...selectedReferenceKbIds.value]),
+                    ...new Set([
+                        ...created.map((i) => i.kb_id),
+                        ...selectedReferenceKbIds.value,
+                    ]),
                 ];
             }
             referenceFiles.value = [];
@@ -705,8 +735,10 @@ export default function useHomePageLogic() {
 
     async function renameChecklistKb(item) {
         try {
-            const oldName = String(item?.name || "").trim();
-            const name = window.prompt("请输入新的清单名称", oldName);
+            const name = window.prompt(
+                "请输入新的清单名称",
+                String(item?.name || "").trim(),
+            );
             if (name == null) return;
             const trimmed = name.trim();
             if (!trimmed) {
@@ -731,10 +763,8 @@ export default function useHomePageLogic() {
 
     async function deleteChecklistKb(item) {
         try {
-            const ok = window.confirm(
-                `确认删除清单知识库“${item?.name || ""}”？`,
-            );
-            if (!ok) return;
+            if (!window.confirm(`确认删除清单知识库"${item?.name || ""}"？`))
+                return;
             const resp = await apiFetch(`/kb/checklists/${item.kb_id}`, {
                 method: "DELETE",
             });
@@ -753,8 +783,10 @@ export default function useHomePageLogic() {
 
     async function renameReferenceKb(item) {
         try {
-            const oldName = String(item?.name || "").trim();
-            const name = window.prompt("请输入新的资料库名称", oldName);
+            const name = window.prompt(
+                "请输入新的资料库名称",
+                String(item?.name || "").trim(),
+            );
             if (name == null) return;
             const trimmed = name.trim();
             if (!trimmed) {
@@ -779,8 +811,8 @@ export default function useHomePageLogic() {
 
     async function deleteReferenceKb(item) {
         try {
-            const ok = window.confirm(`确认删除资料库“${item?.name || ""}”？`);
-            if (!ok) return;
+            if (!window.confirm(`确认删除资料库"${item?.name || ""}"？`))
+                return;
             const resp = await apiFetch(`/kb/references/${item.kb_id}`, {
                 method: "DELETE",
             });
@@ -795,6 +827,13 @@ export default function useHomePageLogic() {
         } catch (e) {
             error.value = e?.message || "资料库删除失败";
         }
+    }
+
+    // ★ 真实计数：审计完成时 +1 并写入 localStorage
+    function incrementTodayCount() {
+        todayCount.value++;
+        localStorage.setItem(todayKey(), String(todayCount.value));
+        refreshAchievements();
     }
 
     async function startAudit() {
@@ -824,14 +863,10 @@ export default function useHomePageLogic() {
                 article_title: "",
             };
         }
-
         resetState();
         loading.value = true;
-
         try {
-            if (referenceFiles.value.length) {
-                await saveReferencesToKb();
-            }
+            if (referenceFiles.value.length) await saveReferencesToKb();
             const cl = parseChecklist(checklistInput.value);
             const selectedChecklistIds = [...selectedChecklistKbIds.value];
             const selectedReferenceIds = [...selectedReferenceKbIds.value];
@@ -871,7 +906,6 @@ export default function useHomePageLogic() {
                     body: fd,
                 });
             }
-
             if (!resp.ok) throw new Error(`提交失败：${resp.status}`);
             const data = await resp.json();
             taskId.value = data.task_id;
@@ -931,12 +965,11 @@ export default function useHomePageLogic() {
             if (
                 articleTitle &&
                 articleTitle !== currentSourceMeta.value.article_title
-            ) {
+            )
                 currentSourceMeta.value = {
                     ...currentSourceMeta.value,
                     article_title: articleTitle,
                 };
-            }
             const idx = Math.min(
                 Math.floor(data.progress / 18),
                 funMessages.length - 1,
@@ -960,14 +993,14 @@ export default function useHomePageLogic() {
                 stopPoll();
                 stopEase();
                 if (data.status === "completed") {
+                    // ★ 真实计数：每次审计完成 +1
+                    incrementTodayCount();
                     showToast(
                         `审计完成！发现 ${data.issues?.length || 0} 个问题`,
                     );
                     tab.value = "result";
                 }
-            } else {
-                schedulePoll(id);
-            }
+            } else schedulePoll(id);
         } catch (e) {
             error.value = e?.message || "查询失败";
             stopPoll();
@@ -1014,27 +1047,23 @@ export default function useHomePageLogic() {
     }
 
     const isRejected = (id) => !!decisionMap.value?.[id];
-
-    function rejectIssue(id) {
+    const rejectIssue = (id) => {
         decisionMap.value = { ...decisionMap.value, [id]: true };
         showToast("已驳回，你的判断已记录");
-    }
-
-    function undoReject(id) {
+    };
+    const undoReject = (id) => {
         decisionMap.value = { ...decisionMap.value, [id]: false };
         showToast("已撤销驳回");
-    }
-
+    };
     const noteForIssue = (id) => noteMap.value?.[id] || "";
-
-    function updateNote(id, t) {
+    const updateNote = (id, t) => {
         noteMap.value = { ...noteMap.value, [id]: t };
-    }
+    };
 
     function removeCustomIssue(id) {
         customIssues.value = customIssues.value.filter((i) => i.id !== id);
-        const nd = { ...decisionMap.value };
-        const nn = { ...noteMap.value };
+        const nd = { ...decisionMap.value },
+            nn = { ...noteMap.value };
         delete nd[id];
         delete nn[id];
         decisionMap.value = nd;
@@ -1044,8 +1073,8 @@ export default function useHomePageLogic() {
     function clearCustomIssues() {
         const ids = new Set(customIssues.value.map((i) => i.id));
         customIssues.value = [];
-        const nd = { ...decisionMap.value };
-        const nn = { ...noteMap.value };
+        const nd = { ...decisionMap.value },
+            nn = { ...noteMap.value };
         for (const id of ids) {
             delete nd[id];
             delete nn[id];
@@ -1225,11 +1254,11 @@ export default function useHomePageLogic() {
             });
             const img = canvas.toDataURL("image/png");
             const pdf = new jPDF("p", "mm", "a4");
-            const pw = pdf.internal.pageSize.getWidth();
-            const ph = pdf.internal.pageSize.getHeight();
-            const m = 6;
-            const iw = pw - m * 2;
-            const ih = (canvas.height * iw) / canvas.width;
+            const pw = pdf.internal.pageSize.getWidth(),
+                ph = pdf.internal.pageSize.getHeight(),
+                m = 6;
+            const iw = pw - m * 2,
+                ih = (canvas.height * iw) / canvas.width;
             let rem = ih;
             pdf.addImage(img, "PNG", m, m, iw, ih);
             rem -= ph - m * 2;
@@ -1248,16 +1277,52 @@ export default function useHomePageLogic() {
         }
     }
 
+    // ★ 键盘快捷键：J/K/↑↓ 切换，空格 驳回
+    function onKeyDown(e) {
+        if (tab.value !== "result") return;
+        const tag = document.activeElement?.tagName;
+        if (tag === "INPUT" || tag === "TEXTAREA") return;
+        const ids = positionedIssues.value.map((it) => it.issue.id);
+        if (!ids.length) return;
+        const cur = hoverIssueId.value;
+        const idx = ids.indexOf(cur);
+        if (e.key === "j" || e.key === "ArrowDown") {
+            e.preventDefault();
+            hoverIssueId.value = ids[Math.min(idx + 1, ids.length - 1)];
+        } else if (e.key === "k" || e.key === "ArrowUp") {
+            e.preventDefault();
+            hoverIssueId.value = ids[Math.max(idx - 1, 0)];
+        } else if (e.key === " " && cur) {
+            e.preventDefault();
+            isRejected(cur) ? undoReject(cur) : rejectIssue(cur);
+        }
+    }
+
     watch(displayIssues, () => {
         issueHeights.value = {};
         nextTick(() => {});
     });
 
+    // ★ hover 变化时自动滚动对应卡片进入视野
+    watch(hoverIssueId, (id) => {
+        if (!id) return;
+        nextTick(() => {
+            document
+                .querySelector(`.i-card[data-id="${id}"]`)
+                ?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+        });
+    });
+
+    // ★ 注册键盘监听，卸载时移除
+    window.addEventListener("keydown", onKeyDown);
     onBeforeUnmount(() => {
         stopPoll();
         stopEase();
+        window.removeEventListener("keydown", onKeyDown);
     });
 
+    // 初始化
+    refreshAchievements();
     loadHistory();
     loadKnowledgeBases().catch((e) => {
         error.value = e?.message || "加载知识库失败";
@@ -1276,8 +1341,8 @@ export default function useHomePageLogic() {
         clearHistory,
         compareDiff,
         compareGood,
-        customIssues,
         currentSourceLabel,
+        customIssues,
         decisionStats,
         deleteChecklistKb,
         deleteReferenceKb,
@@ -1311,6 +1376,7 @@ export default function useHomePageLogic() {
         noteForIssue,
         onFileChange,
         onReferenceFilesChange,
+        onReset, // ★ 新增：供 HomePage.vue 注册 collabVm.resetCollab
         onShotLoad,
         pillClass,
         positionedIssues,
@@ -1336,6 +1402,7 @@ export default function useHomePageLogic() {
         shotImg,
         shotWrapper,
         showMotivation,
+        showToast, // ★ 新增：供 useCollabLogic 使用
         startAudit,
         status,
         statusLabel,
@@ -1347,7 +1414,7 @@ export default function useHomePageLogic() {
         taskHistory,
         taskId,
         toastMsg,
-        todayCount,
+        todayCount, // ★ 真实计数
         toggleDrawingMode,
         undoReject,
         updateNote,

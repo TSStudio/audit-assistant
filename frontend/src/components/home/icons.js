@@ -41,3 +41,9 @@ export const SvgDownload = {
 export const SvgStar = {
     template: `<svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M8 2l1.5 3.5L13 6l-2.5 2.5.5 3.5L8 10.5 5 12l.5-3.5L3 6l3.5-.5z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/></svg>`,
 };
+
+export const SvgShare = { template: `<svg width="14" height="14" viewBox="0 0 16 16" fill="none"><circle cx="12" cy="3" r="1.5" stroke="currentColor" stroke-width="1.3"/><circle cx="4" cy="8" r="1.5" stroke="currentColor" stroke-width="1.3"/><circle cx="12" cy="13" r="1.5" stroke="currentColor" stroke-width="1.3"/><path d="M5.5 7l5-3M5.5 9l5 3" stroke="currentColor" stroke-width="1.3"/></svg>` }
+
+export const SvgSend = { template: `<svg width="11" height="11" viewBox="0 0 16 16" fill="none"><path d="M2 8h12M9 4l5 4-5 4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>` }
+
+export const SvgCopy = { template: `<svg width="11" height="11" viewBox="0 0 16 16" fill="none"><rect x="5" y="5" width="9" height="9" rx="2" stroke="currentColor" stroke-width="1.3"/><path d="M3 11V3a2 2 0 012-2h8" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>` }
