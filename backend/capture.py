@@ -120,6 +120,49 @@ def _extract_images(soup: BeautifulSoup) -> List[ImageAsset]:
     return images
 
 
+def _clean_title(raw: Optional[str]) -> Optional[str]:
+    if raw is None:
+        return None
+    text = " ".join(str(raw).split()).strip(" -_|\t\r\n")
+    if not text:
+        return None
+
+    for suffix in (
+        " - 微信公众号",
+        " - 微信公众平台",
+        "_微信公众平台",
+        " | 微信公众号",
+        " | 微信公众平台",
+    ):
+        if text.endswith(suffix):
+            text = text[: -len(suffix)].strip(" -_|")
+            break
+
+    if text.startswith("http://") or text.startswith("https://"):
+        return None
+    return text or None
+
+
+def _extract_article_title(soup: BeautifulSoup) -> Optional[str]:
+    selectors = (
+        ("h1.rich_media_title", False),
+        ("#activity-name", False),
+        ("meta[property='og:title']", True),
+        ("meta[name='twitter:title']", True),
+        ("title", False),
+    )
+
+    for selector, is_meta in selectors:
+        tag = soup.select_one(selector)
+        if not tag:
+            continue
+        raw = tag.get("content") if is_meta else tag.get_text(" ", strip=True)
+        title = _clean_title(raw)
+        if title:
+            return title
+    return None
+
+
 def capture_article(
     url: str, viewport: Tuple[int, int] = (600, 800), wait_ms: int = 1500
 ) -> ArticleBundle:
@@ -155,6 +198,7 @@ def capture_article(
         raise RuntimeError(f"Capture failed: {exc}")
 
     soup = BeautifulSoup(content, "html.parser")
+    title = _extract_article_title(soup)
     links = _extract_links(soup)
     images = _extract_images(soup)
 
@@ -164,6 +208,7 @@ def capture_article(
 
     return ArticleBundle(
         source_url=url,
+        title=title,
         text_blocks=text_blocks,
         links=links,
         images=images,

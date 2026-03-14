@@ -92,6 +92,14 @@
         "documentation": {}
     },
     {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
         "label": "Optional",
         "importPath": "typing",
         "description": "typing",
@@ -148,6 +156,30 @@
         "documentation": {}
     },
     {
+        "label": "List",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "Sequence",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "Tuple",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
         "label": "Dict",
         "importPath": "typing",
         "description": "typing",
@@ -196,7 +228,31 @@
         "documentation": {}
     },
     {
+        "label": "List",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
         "label": "Optional",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "List",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "Sequence",
         "importPath": "typing",
         "description": "typing",
         "isExtraImport": true,
@@ -265,6 +321,22 @@
         "description": "typing",
         "isExtraImport": true,
         "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "uuid4",
+        "importPath": "uuid",
+        "description": "uuid",
+        "isExtraImport": true,
+        "detail": "uuid",
+        "documentation": {}
+    },
+    {
+        "label": "uuid4",
+        "importPath": "uuid",
+        "description": "uuid",
+        "isExtraImport": true,
+        "detail": "uuid",
         "documentation": {}
     },
     {
@@ -350,12 +422,11 @@
         "documentation": {}
     },
     {
-        "label": "base64",
-        "kind": 6,
+        "label": "BytesIO",
+        "importPath": "io",
+        "description": "io",
         "isExtraImport": true,
-        "importPath": "base64",
-        "description": "base64",
-        "detail": "base64",
+        "detail": "io",
         "documentation": {}
     },
     {
@@ -367,35 +438,19 @@
         "documentation": {}
     },
     {
-        "label": "load_dotenv",
-        "importPath": "dotenv",
-        "description": "dotenv",
+        "label": "Document",
+        "importPath": "docx",
+        "description": "docx",
         "isExtraImport": true,
-        "detail": "dotenv",
+        "detail": "docx",
         "documentation": {}
     },
     {
-        "label": "load_dotenv",
-        "importPath": "dotenv",
-        "description": "dotenv",
+        "label": "Image",
+        "importPath": "PIL",
+        "description": "PIL",
         "isExtraImport": true,
-        "detail": "dotenv",
-        "documentation": {}
-    },
-    {
-        "label": "OpenAI",
-        "importPath": "openai",
-        "description": "openai",
-        "isExtraImport": true,
-        "detail": "openai",
-        "documentation": {}
-    },
-    {
-        "label": "OpenAI",
-        "importPath": "openai",
-        "description": "openai",
-        "isExtraImport": true,
-        "detail": "openai",
+        "detail": "PIL",
         "documentation": {}
     },
     {
@@ -439,6 +494,63 @@
         "documentation": {}
     },
     {
+        "label": "PdfReader",
+        "importPath": "pypdf",
+        "description": "pypdf",
+        "isExtraImport": true,
+        "detail": "pypdf",
+        "documentation": {}
+    },
+    {
+        "label": "base64",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "base64",
+        "description": "base64",
+        "detail": "base64",
+        "documentation": {}
+    },
+    {
+        "label": "load_dotenv",
+        "importPath": "dotenv",
+        "description": "dotenv",
+        "isExtraImport": true,
+        "detail": "dotenv",
+        "documentation": {}
+    },
+    {
+        "label": "load_dotenv",
+        "importPath": "dotenv",
+        "description": "dotenv",
+        "isExtraImport": true,
+        "detail": "dotenv",
+        "documentation": {}
+    },
+    {
+        "label": "load_dotenv",
+        "importPath": "dotenv",
+        "description": "dotenv",
+        "isExtraImport": true,
+        "detail": "dotenv",
+        "documentation": {}
+    },
+    {
+        "label": "OpenAI",
+        "importPath": "openai",
+        "description": "openai",
+        "isExtraImport": true,
+        "detail": "openai",
+        "documentation": {}
+    },
+    {
+        "label": "OpenAI",
+        "importPath": "openai",
+        "description": "openai",
+        "isExtraImport": true,
+        "detail": "openai",
+        "documentation": {}
+    },
+    {
         "label": "FastAPI",
         "importPath": "fastapi",
         "description": "fastapi",
@@ -447,7 +559,31 @@
         "documentation": {}
     },
     {
+        "label": "File",
+        "importPath": "fastapi",
+        "description": "fastapi",
+        "isExtraImport": true,
+        "detail": "fastapi",
+        "documentation": {}
+    },
+    {
+        "label": "Form",
+        "importPath": "fastapi",
+        "description": "fastapi",
+        "isExtraImport": true,
+        "detail": "fastapi",
+        "documentation": {}
+    },
+    {
         "label": "HTTPException",
+        "importPath": "fastapi",
+        "description": "fastapi",
+        "isExtraImport": true,
+        "detail": "fastapi",
+        "documentation": {}
+    },
+    {
+        "label": "UploadFile",
         "importPath": "fastapi",
         "description": "fastapi",
         "isExtraImport": true,
@@ -494,6 +630,14 @@
         "importPath": "httpx",
         "description": "httpx",
         "detail": "httpx",
+        "documentation": {}
+    },
+    {
+        "label": "annotations",
+        "importPath": "__future__",
+        "description": "__future__",
+        "isExtraImport": true,
+        "detail": "__future__",
         "documentation": {}
     },
     {
@@ -667,12 +811,111 @@
         "documentation": {}
     },
     {
+        "label": "infer_upload_type",
+        "kind": 2,
+        "importPath": "backend.ingest",
+        "description": "backend.ingest",
+        "peekOfCode": "def infer_upload_type(filename: str) -> str:\n    ext = Path(filename or \"\").suffix.lower()\n    if ext in _TEXT_EXTS:\n        return \"txt\"\n    if ext in _DOCX_EXTS:\n        return \"docx\"\n    if ext in _PDF_EXTS:\n        return \"pdf\"\n    if ext in _IMAGE_EXTS:\n        return \"image\"",
+        "detail": "backend.ingest",
+        "documentation": {}
+    },
+    {
+        "label": "extract_reference_context",
+        "kind": 2,
+        "importPath": "backend.ingest",
+        "description": "backend.ingest",
+        "peekOfCode": "def extract_reference_context(\n    files: Sequence[Tuple[str, bytes]],\n    *,\n    max_chars: int = 12000,\n) -> str:\n    \"\"\"Build prompt-ready context text from supplementary files.\n    Supported reference formats: txt/docx/pdf.\n    \"\"\"\n    parts: List[str] = []\n    for name, content in files:",
+        "detail": "backend.ingest",
+        "documentation": {}
+    },
+    {
+        "label": "extract_reference_documents",
+        "kind": 2,
+        "importPath": "backend.ingest",
+        "description": "backend.ingest",
+        "peekOfCode": "def extract_reference_documents(\n    files: Sequence[Tuple[str, bytes]],\n    *,\n    max_chars_per_doc: int = 60000,\n) -> List[dict]:\n    \"\"\"Extract reference files as structured documents for RAG retrieval.\"\"\"\n    docs: List[dict] = []\n    for name, content in files:\n        if not content:\n            continue",
+        "detail": "backend.ingest",
+        "documentation": {}
+    },
+    {
+        "label": "is_supported_reference_file",
+        "kind": 2,
+        "importPath": "backend.ingest",
+        "description": "backend.ingest",
+        "peekOfCode": "def is_supported_reference_file(filename: str) -> bool:\n    ext = Path(filename or \"\").suffix.lower()\n    return ext in _REFERENCE_TEXT_EXTS\ndef build_bundle_from_upload(\n    filename: str,\n    content: bytes,\n) -> Tuple[ArticleBundle, str, bool]:\n    \"\"\"Parse uploaded content to a bundle.\n    Returns ``(bundle, upload_type, disable_multimodal)``.\n    \"\"\"",
+        "detail": "backend.ingest",
+        "documentation": {}
+    },
+    {
+        "label": "build_bundle_from_upload",
+        "kind": 2,
+        "importPath": "backend.ingest",
+        "description": "backend.ingest",
+        "peekOfCode": "def build_bundle_from_upload(\n    filename: str,\n    content: bytes,\n) -> Tuple[ArticleBundle, str, bool]:\n    \"\"\"Parse uploaded content to a bundle.\n    Returns ``(bundle, upload_type, disable_multimodal)``.\n    \"\"\"\n    if not content:\n        raise ValueError(\"Empty upload content\")\n    upload_type = infer_upload_type(filename)",
+        "detail": "backend.ingest",
+        "documentation": {}
+    },
+    {
+        "label": "_TEXT_EXTS",
+        "kind": 5,
+        "importPath": "backend.ingest",
+        "description": "backend.ingest",
+        "peekOfCode": "_TEXT_EXTS = {\".txt\"}\n_DOCX_EXTS = {\".docx\"}\n_PDF_EXTS = {\".pdf\"}\n_IMAGE_EXTS = {\".png\", \".jpg\", \".jpeg\", \".bmp\", \".gif\", \".webp\", \".tif\", \".tiff\"}\n_REFERENCE_TEXT_EXTS = _TEXT_EXTS | _DOCX_EXTS | _PDF_EXTS\ndef _split_text_blocks(text: str, max_chars: int = 1200) -> List[TextBlock]:\n    cleaned = (text or \"\").replace(\"\\r\", \"\").strip()\n    if not cleaned:\n        return []\n    chunks: List[str] = []",
+        "detail": "backend.ingest",
+        "documentation": {}
+    },
+    {
+        "label": "_DOCX_EXTS",
+        "kind": 5,
+        "importPath": "backend.ingest",
+        "description": "backend.ingest",
+        "peekOfCode": "_DOCX_EXTS = {\".docx\"}\n_PDF_EXTS = {\".pdf\"}\n_IMAGE_EXTS = {\".png\", \".jpg\", \".jpeg\", \".bmp\", \".gif\", \".webp\", \".tif\", \".tiff\"}\n_REFERENCE_TEXT_EXTS = _TEXT_EXTS | _DOCX_EXTS | _PDF_EXTS\ndef _split_text_blocks(text: str, max_chars: int = 1200) -> List[TextBlock]:\n    cleaned = (text or \"\").replace(\"\\r\", \"\").strip()\n    if not cleaned:\n        return []\n    chunks: List[str] = []\n    for paragraph in cleaned.split(\"\\n\"):",
+        "detail": "backend.ingest",
+        "documentation": {}
+    },
+    {
+        "label": "_PDF_EXTS",
+        "kind": 5,
+        "importPath": "backend.ingest",
+        "description": "backend.ingest",
+        "peekOfCode": "_PDF_EXTS = {\".pdf\"}\n_IMAGE_EXTS = {\".png\", \".jpg\", \".jpeg\", \".bmp\", \".gif\", \".webp\", \".tif\", \".tiff\"}\n_REFERENCE_TEXT_EXTS = _TEXT_EXTS | _DOCX_EXTS | _PDF_EXTS\ndef _split_text_blocks(text: str, max_chars: int = 1200) -> List[TextBlock]:\n    cleaned = (text or \"\").replace(\"\\r\", \"\").strip()\n    if not cleaned:\n        return []\n    chunks: List[str] = []\n    for paragraph in cleaned.split(\"\\n\"):\n        part = paragraph.strip()",
+        "detail": "backend.ingest",
+        "documentation": {}
+    },
+    {
+        "label": "_IMAGE_EXTS",
+        "kind": 5,
+        "importPath": "backend.ingest",
+        "description": "backend.ingest",
+        "peekOfCode": "_IMAGE_EXTS = {\".png\", \".jpg\", \".jpeg\", \".bmp\", \".gif\", \".webp\", \".tif\", \".tiff\"}\n_REFERENCE_TEXT_EXTS = _TEXT_EXTS | _DOCX_EXTS | _PDF_EXTS\ndef _split_text_blocks(text: str, max_chars: int = 1200) -> List[TextBlock]:\n    cleaned = (text or \"\").replace(\"\\r\", \"\").strip()\n    if not cleaned:\n        return []\n    chunks: List[str] = []\n    for paragraph in cleaned.split(\"\\n\"):\n        part = paragraph.strip()\n        if not part:",
+        "detail": "backend.ingest",
+        "documentation": {}
+    },
+    {
+        "label": "_REFERENCE_TEXT_EXTS",
+        "kind": 5,
+        "importPath": "backend.ingest",
+        "description": "backend.ingest",
+        "peekOfCode": "_REFERENCE_TEXT_EXTS = _TEXT_EXTS | _DOCX_EXTS | _PDF_EXTS\ndef _split_text_blocks(text: str, max_chars: int = 1200) -> List[TextBlock]:\n    cleaned = (text or \"\").replace(\"\\r\", \"\").strip()\n    if not cleaned:\n        return []\n    chunks: List[str] = []\n    for paragraph in cleaned.split(\"\\n\"):\n        part = paragraph.strip()\n        if not part:\n            continue",
+        "detail": "backend.ingest",
+        "documentation": {}
+    },
+    {
         "label": "audit_multimodal",
         "kind": 2,
         "importPath": "backend.llm_multimodal",
         "description": "backend.llm_multimodal",
-        "peekOfCode": "def audit_multimodal(\n    bundle: ArticleBundle, checklist: Optional[List[str]] = None\n) -> List[Issue]:\n    \"\"\"Call Qwen VLM with an image and structured summary to check consistency.\"\"\"\n    image_path = _select_image_path(bundle)\n    if not image_path:\n        return []\n    original_data_url, width, height = _encode_original(image_path)\n    grid_data_url, grid_meta, grid_path = _encode_grid_image(image_path)\n    if not original_data_url or not grid_data_url:",
+        "peekOfCode": "def audit_multimodal(\n    bundle: ArticleBundle,\n    checklist: Optional[List[str]] = None,\n    reference_context: str = \"\",\n) -> List[Issue]:\n    \"\"\"Call Qwen VLM with an image and structured summary to check consistency.\"\"\"\n    image_path = _select_image_path(bundle)\n    if not image_path:\n        return []\n    original_data_url, width, height = _encode_original(image_path)",
         "detail": "backend.llm_multimodal",
+        "documentation": {}
+    },
+    {
+        "label": "merge_llm_vlm_issues",
+        "kind": 2,
+        "importPath": "backend.llm_text",
+        "description": "backend.llm_text",
+        "peekOfCode": "def merge_llm_vlm_issues(\n    issues_text: Optional[List],\n    issues_vlm: Optional[List],\n) -> List[dict]:\n    \"\"\"Merge text-LLM and VLM issues with text-LLM priority on duplicates.\"\"\"\n    text_items = [d for d in (_issue_to_dict(i) for i in (issues_text or [])) if d]\n    vlm_items = [d for d in (_issue_to_dict(i) for i in (issues_vlm or [])) if d]\n    if not text_items and not vlm_items:\n        return []\n    if not text_items:",
+        "detail": "backend.llm_text",
         "documentation": {}
     },
     {
@@ -680,7 +923,7 @@
         "kind": 2,
         "importPath": "backend.llm_text",
         "description": "backend.llm_text",
-        "peekOfCode": "def audit_text(\n    bundle: ArticleBundle, checklist: Optional[List[str]] = None\n) -> List[Issue]:\n    \"\"\"Call text LLM to flag typos/format issues. Returns an Issue list.\"\"\"\n    if not bundle.text_blocks:\n        return []\n    snippet = \"\\n\\n\".join([b.text for b in bundle.text_blocks])\n    # debug\n    print(\"snippet:\", snippet)\n    checklist = [item.strip() for item in (checklist or []) if item and item.strip()]",
+        "peekOfCode": "def audit_text(\n    bundle: ArticleBundle,\n    checklist: Optional[List[str]] = None,\n    reference_context: str = \"\",\n) -> List[Issue]:\n    \"\"\"Call text LLM to flag typos/format issues. Returns an Issue list.\"\"\"\n    if not bundle.text_blocks:\n        return []\n    snippet = \"\\n\\n\".join([b.text for b in bundle.text_blocks])\n    # debug",
         "detail": "backend.llm_text",
         "documentation": {}
     },
@@ -689,7 +932,7 @@
         "kind": 2,
         "importPath": "backend.main",
         "description": "backend.main",
-        "peekOfCode": "def health():\n    return {\"status\": \"ok\"}\n@app.post(\"/api/audit\", response_model=AuditStatusResponse)\ndef create_audit(request: AuditRequest):\n    return start_audit(request.url, checklist=request.checklist)\n@app.get(\"/api/audit/{task_id}\", response_model=AuditStatusResponse)\ndef read_audit(task_id: str):\n    status = get_status(task_id)\n    if not status:\n        raise HTTPException(status_code=404, detail=\"task not found\")",
+        "peekOfCode": "def health():\n    return {\"status\": \"ok\"}\n@app.post(\"/api/audit\", response_model=AuditStatusResponse)\ndef create_audit(request: AuditRequest):\n    return start_audit(str(request.url), checklist=request.checklist, source_mode=\"url\")\nasync def _parse_reference_files(files: List[UploadFile]) -> List[dict]:\n    if not files:\n        return []\n    payloads: List[tuple[str, bytes]] = []\n    unsupported: List[str] = []",
         "detail": "backend.main",
         "documentation": {}
     },
@@ -698,7 +941,7 @@
         "kind": 2,
         "importPath": "backend.main",
         "description": "backend.main",
-        "peekOfCode": "def create_audit(request: AuditRequest):\n    return start_audit(request.url, checklist=request.checklist)\n@app.get(\"/api/audit/{task_id}\", response_model=AuditStatusResponse)\ndef read_audit(task_id: str):\n    status = get_status(task_id)\n    if not status:\n        raise HTTPException(status_code=404, detail=\"task not found\")\n    return status",
+        "peekOfCode": "def create_audit(request: AuditRequest):\n    return start_audit(str(request.url), checklist=request.checklist, source_mode=\"url\")\nasync def _parse_reference_files(files: List[UploadFile]) -> List[dict]:\n    if not files:\n        return []\n    payloads: List[tuple[str, bytes]] = []\n    unsupported: List[str] = []\n    for f in files:\n        filename = f.filename or \"unnamed\"\n        try:",
         "detail": "backend.main",
         "documentation": {}
     },
@@ -736,6 +979,15 @@
         "description": "backend.parser",
         "peekOfCode": "def enrich_bundle(bundle: ArticleBundle, base_url: str) -> ArticleBundle:\n    \"\"\"Resolve links and download images; returns updated bundle.\"\"\"\n    client = httpx.Client(timeout=15)\n    links = [_resolve_link(client, base_url, link) for link in bundle.links]\n    image_dir = Path(\"captures/images\")\n    images = [\n        _download_image(client, base_url, asset, image_dir) for asset in bundle.images\n    ]\n    client.close()\n    return bundle.model_copy(",
         "detail": "backend.parser",
+        "documentation": {}
+    },
+    {
+        "label": "retrieve_reference_context",
+        "kind": 2,
+        "importPath": "backend.rag",
+        "description": "backend.rag",
+        "peekOfCode": "def retrieve_reference_context(\n    reference_docs: Sequence[dict],\n    query_text: str,\n    *,\n    top_k: int = 8,\n    max_chars: int = 6000,\n) -> str:\n    \"\"\"Retrieve top-k relevant chunks from reference docs using Chroma embeddings.\n    Falls back to simple truncation when Chroma or embeddings are unavailable.\n    \"\"\"",
+        "detail": "backend.rag",
         "documentation": {}
     },
     {
@@ -842,7 +1094,7 @@
         "kind": 6,
         "importPath": "backend.schema",
         "description": "backend.schema",
-        "peekOfCode": "class Issue(BaseModel):\n    id: str\n    type: IssueType\n    severity: Severity\n    evidence: IssueEvidence\n    recommendation: Optional[str] = None\n    confidence: Optional[float] = None\nclass ArticleBundle(BaseModel):\n    source_url: Optional[str] = None\n    text_blocks: List[TextBlock] = Field(default_factory=list)",
+        "peekOfCode": "class Issue(BaseModel):\n    id: str\n    type: IssueType\n    severity: Severity\n    evidence: IssueEvidence\n    recommendation: Optional[str] = None\n    confidence: Optional[float] = None\nclass ArticleBundle(BaseModel):\n    source_url: Optional[str] = None\n    title: Optional[str] = None",
         "detail": "backend.schema",
         "documentation": {}
     },
@@ -851,7 +1103,7 @@
         "kind": 6,
         "importPath": "backend.schema",
         "description": "backend.schema",
-        "peekOfCode": "class ArticleBundle(BaseModel):\n    source_url: Optional[str] = None\n    text_blocks: List[TextBlock] = Field(default_factory=list)\n    links: List[LinkItem] = Field(default_factory=list)\n    images: List[ImageAsset] = Field(default_factory=list)\n    qrcodes: List[QRCodeEntry] = Field(default_factory=list)\n    ocr_texts: List[OCRText] = Field(default_factory=list)\n    screenshots: List[ScreenshotMeta] = Field(default_factory=list)\nclass AuditRequest(BaseModel):\n    url: HttpUrl",
+        "peekOfCode": "class ArticleBundle(BaseModel):\n    source_url: Optional[str] = None\n    title: Optional[str] = None\n    text_blocks: List[TextBlock] = Field(default_factory=list)\n    links: List[LinkItem] = Field(default_factory=list)\n    images: List[ImageAsset] = Field(default_factory=list)\n    qrcodes: List[QRCodeEntry] = Field(default_factory=list)\n    ocr_texts: List[OCRText] = Field(default_factory=list)\n    screenshots: List[ScreenshotMeta] = Field(default_factory=list)\nclass AuditRequest(BaseModel):",
         "detail": "backend.schema",
         "documentation": {}
     },
@@ -923,7 +1175,7 @@
         "kind": 2,
         "importPath": "backend.tasks",
         "description": "backend.tasks",
-        "peekOfCode": "def start_audit(url: str, checklist: Optional[List[str]] = None) -> AuditStatusResponse:\n    record = create_task(str(url), checklist=checklist or [])\n    task_id = record[\"task_id\"]\n    thread = Thread(\n        target=_run_pipeline,\n        args=(task_id, str(url), record.get(\"checklist\") or []),\n        daemon=True,\n    )\n    thread.start()\n    return AuditStatusResponse(",
+        "peekOfCode": "def start_audit(\n    source_label: str,\n    checklist: Optional[List[str]] = None,\n    *,\n    source_mode: str = \"url\",\n    upload_filename: Optional[str] = None,\n    upload_content: Optional[bytes] = None,\n    reference_docs: Optional[List[dict]] = None,\n) -> AuditStatusResponse:\n    record = create_task(str(source_label), checklist=checklist or [])",
         "detail": "backend.tasks",
         "documentation": {}
     },
@@ -932,7 +1184,7 @@
         "kind": 2,
         "importPath": "backend.tasks",
         "description": "backend.tasks",
-        "peekOfCode": "def run_pipeline(\n    task_id: str, url: str, checklist: Optional[List[str]] = None\n) -> Tuple[ArticleBundle, list[Issue]]:\n    \"\"\"Run the full audit pipeline synchronously with progress updates.\"\"\"\n    _update_progress(task_id, 5, \"Starting capture\")\n    bundle = capture_article(url)\n    _update_progress(task_id, 25, \"Parsing & enriching\")\n    bundle = enrich_bundle(bundle, url)\n    _update_progress(task_id, 45, \"Analyzing images\")\n    bundle = analyze_images(bundle)",
+        "peekOfCode": "def run_pipeline(\n    task_id: str,\n    source_label: str,\n    checklist: Optional[List[str]] = None,\n    source_mode: str = \"url\",\n    upload_filename: Optional[str] = None,\n    upload_content: Optional[bytes] = None,\n    reference_docs: Optional[List[dict]] = None,\n) -> Tuple[ArticleBundle, list[Issue]]:\n    \"\"\"Run the full audit pipeline synchronously with progress updates.\"\"\"",
         "detail": "backend.tasks",
         "documentation": {}
     },

@@ -186,12 +186,14 @@ def build_bundle_from_upload(
 
     upload_type = infer_upload_type(filename)
     source_ref = f"upload://{filename or 'unknown'}"
+    title = Path(filename).stem or filename or "上传文件"
 
     if upload_type == "txt":
         text = _decode_txt(content)
         return (
             ArticleBundle(
                 source_url=source_ref,
+                title=title,
                 text_blocks=_split_text_blocks(text),
             ),
             upload_type,
@@ -203,6 +205,7 @@ def build_bundle_from_upload(
         return (
             ArticleBundle(
                 source_url=source_ref,
+                title=title,
                 text_blocks=_split_text_blocks(text),
             ),
             upload_type,
@@ -214,6 +217,7 @@ def build_bundle_from_upload(
         return (
             ArticleBundle(
                 source_url=source_ref,
+                title=title,
                 text_blocks=_split_text_blocks(text),
             ),
             upload_type,
@@ -223,6 +227,7 @@ def build_bundle_from_upload(
     image_path, width, height = _save_uploaded_image(content, Path(filename).suffix)
     bundle = ArticleBundle(
         source_url=source_ref,
+        title=title,
         images=[
             ImageAsset(
                 id="img0",

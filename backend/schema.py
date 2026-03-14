@@ -103,6 +103,7 @@ class Issue(BaseModel):
 
 class ArticleBundle(BaseModel):
     source_url: Optional[str] = None
+    title: Optional[str] = None
     text_blocks: List[TextBlock] = Field(default_factory=list)
     links: List[LinkItem] = Field(default_factory=list)
     images: List[ImageAsset] = Field(default_factory=list)
