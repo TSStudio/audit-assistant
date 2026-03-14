@@ -299,6 +299,9 @@ def _call_vlm(
     summary_text: str,
     image_size: Tuple[Optional[int], Optional[int]],
     grid_meta: Optional[Dict[str, float]] = None,
+    *,
+    enable_thinking: bool = True,
+    temperature: float = 0.5,
 ) -> Optional[str]:
     cfg = _get_config()
     if not cfg["api_key"] or not cfg["model"] or not cfg["base_url"]:
@@ -366,6 +369,10 @@ def _call_vlm(
                     ],
                 },
             ],
+            temperature=temperature,
+            extra_body={
+                "chat_template_kwargs": {"enable_thinking": bool(enable_thinking)}
+            },
             response_format={"type": "json_object"},
         )
         return completion.choices[0].message.content
@@ -377,6 +384,7 @@ def audit_multimodal(
     bundle: ArticleBundle,
     checklist: Optional[List[str]] = None,
     reference_context: str = "",
+    enable_thinking: bool = True,
 ) -> List[Issue]:
     """Call Qwen VLM with an image and structured summary to check consistency."""
 
@@ -455,6 +463,8 @@ def audit_multimodal(
         summary_payload,
         (width, height),
         grid_meta=grid_meta,
+        enable_thinking=enable_thinking,
+        temperature=0.5,
     )
     print("## Raw Multimodal LLM Response", raw)
     if not raw:

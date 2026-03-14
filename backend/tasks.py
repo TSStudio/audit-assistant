@@ -25,12 +25,19 @@ def start_audit(
     source_label: str,
     checklist: Optional[List[str]] = None,
     *,
+    user_token: str,
+    fast_mode: bool = False,
     source_mode: str = "url",
     upload_filename: Optional[str] = None,
     upload_content: Optional[bytes] = None,
     reference_docs: Optional[List[dict]] = None,
+    reference_kb_ids: Optional[List[str]] = None,
 ) -> AuditStatusResponse:
-    record = create_task(str(source_label), checklist=checklist or [])
+    record = create_task(
+        str(source_label),
+        checklist=checklist or [],
+        user_token=user_token,
+    )
     task_id = record["task_id"]
 
     thread = Thread(
@@ -40,9 +47,12 @@ def start_audit(
             str(source_label),
             record.get("checklist") or [],
             source_mode,
+            fast_mode,
             upload_filename,
             upload_content,
             reference_docs or [],
+            reference_kb_ids or [],
+            user_token,
         ),
         daemon=True,
     )
@@ -64,9 +74,12 @@ def _run_pipeline(
     source_label: str,
     checklist: Optional[List[str]] = None,
     source_mode: str = "url",
+    fast_mode: bool = False,
     upload_filename: Optional[str] = None,
     upload_content: Optional[bytes] = None,
     reference_docs: Optional[List[dict]] = None,
+    reference_kb_ids: Optional[List[str]] = None,
+    user_token: str = "",
 ) -> None:
     try:
         bundle, issues = run_pipeline(
@@ -74,9 +87,12 @@ def _run_pipeline(
             source_label,
             checklist=checklist or [],
             source_mode=source_mode,
+            fast_mode=fast_mode,
             upload_filename=upload_filename,
             upload_content=upload_content,
             reference_docs=reference_docs or [],
+            reference_kb_ids=reference_kb_ids or [],
+            user_token=user_token,
         )
         complete_task(task_id, bundle, issues)
     except Exception as exc:  # noqa: BLE001
@@ -224,9 +240,12 @@ def run_pipeline(
     source_label: str,
     checklist: Optional[List[str]] = None,
     source_mode: str = "url",
+    fast_mode: bool = False,
     upload_filename: Optional[str] = None,
     upload_content: Optional[bytes] = None,
     reference_docs: Optional[List[dict]] = None,
+    reference_kb_ids: Optional[List[str]] = None,
+    user_token: str = "",
 ) -> Tuple[ArticleBundle, list[Issue]]:
     """Run the full audit pipeline synchronously with progress updates."""
 
@@ -258,13 +277,19 @@ def run_pipeline(
     if bundle.source_url:
         query_parts.append(f"source={bundle.source_url}")
     rag_query = "\n".join([p for p in query_parts if p]).strip()
-    rag_context = retrieve_reference_context(reference_docs or [], rag_query)
+    rag_context = retrieve_reference_context(
+        reference_docs or [],
+        rag_query,
+        user_token=user_token,
+        reference_kb_ids=reference_kb_ids or [],
+    )
 
     _update_progress(task_id, 65, "Text LLM audit")
     issues_text = audit_text(
         bundle,
         checklist=checklist or [],
         reference_context=rag_context,
+        enable_thinking=not fast_mode,
     )
 
     # Attach bounding boxes from captured text blocks so the frontend can render directly.
@@ -279,10 +304,15 @@ def run_pipeline(
             bundle,
             checklist=checklist or [],
             reference_context=rag_context,
+            enable_thinking=not fast_mode,
         )
 
     _update_progress(task_id, 92, "Merging LLM and multimodal issues")
-    issues = merge_llm_vlm_issues(issues_text, issues_mm)
+    issues = merge_llm_vlm_issues(
+        issues_text,
+        issues_mm,
+        enable_thinking=False,
+    )
     try:
         print(
             f"[pipeline] issues_text={len(issues_text)}, issues_mm={len(issues_mm)}, total={len(issues)}"
@@ -292,8 +322,10 @@ def run_pipeline(
     return bundle, issues
 
 
-def get_status(task_id: str) -> Optional[AuditStatusResponse]:
-    record = get_task(task_id)
+def get_status(
+    task_id: str, *, user_token: Optional[str] = None
+) -> Optional[AuditStatusResponse]:
+    record = get_task(task_id, user_token=user_token)
     if not record:
         return None
     bundle = None
