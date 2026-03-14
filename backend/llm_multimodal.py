@@ -227,9 +227,7 @@ def _parse_issues(
 
         item.pop("bbox", None)
         if not item.get("id"):
-            item["id"] = (
-                f"mm-c{chunk_meta.get('chunk_index', 0)}-{idx}"
-            )
+            item["id"] = f"mm-c{chunk_meta.get('chunk_index', 0)}-{idx}"
         item["evidence"] = ev
         normalized.append(item)
 
@@ -299,7 +297,7 @@ def _call_vlm(
                     "role": "system",
                     "content": (
                         "你是视觉-文字审校员，必须返回 JSON 对象。"
-                        "输出格式: {\"issues\":[{\"id\":\"str\",\"type\":\"image_text_mismatch|ocr_error|qr_error|layout_issue|other\",\"severity\":\"info|warn|error\",\"evidence\":{\"bbox\":{\"x\":int,\"y\":int,\"width\":int,\"height\":int},\"quote\":\"...\",\"reason\":\"...\"},\"recommendation\":\"...\"}]}."
+                        '输出格式: {"issues":[{"id":"str","type":"image_text_mismatch|ocr_error|qr_error|layout_issue|other","severity":"info|warn|error","evidence":{"bbox":{"x":int,"y":int,"width":int,"height":int},"quote":"...","reason":"..."},"recommendation":"..."}]}.'
                         "bbox 必须是当前切片坐标系像素位置，不允许用网格、归一化比例或整图坐标。"
                         f"当前切片尺寸 width={chunk_w} height={chunk_h}，x/y 必须在切片内。"
                     ),

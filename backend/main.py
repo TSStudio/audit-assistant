@@ -48,6 +48,7 @@ def _append_vary(existing: str, token: str) -> str:
         current.append(token)
     return ", ".join(current)
 
+
 captures_dir = Path(__file__).resolve().parent / "captures"
 captures_dir.mkdir(exist_ok=True)
 app.mount("/api/captures", StaticFiles(directory=str(captures_dir)), name="captures")
@@ -83,8 +84,12 @@ async def add_capture_cors_headers(request: Request, call_next):
         response.headers["Access-Control-Allow-Origin"] = allowed_origin
         response.headers["Access-Control-Allow-Credentials"] = "true"
         response.headers["Cross-Origin-Resource-Policy"] = "cross-origin"
-        response.headers["Vary"] = _append_vary(response.headers.get("Vary", ""), "Origin")
-        response.headers["Vary"] = _append_vary(response.headers.get("Vary", ""), "Referer")
+        response.headers["Vary"] = _append_vary(
+            response.headers.get("Vary", ""), "Origin"
+        )
+        response.headers["Vary"] = _append_vary(
+            response.headers.get("Vary", ""), "Referer"
+        )
 
     return response
 

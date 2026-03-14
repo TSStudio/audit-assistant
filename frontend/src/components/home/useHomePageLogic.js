@@ -521,7 +521,9 @@ export default function useHomePageLogic() {
                 llm_vlm_done: "LLM/VLM审核完成",
                 completed: "已完成",
                 failed: "失败",
-            }[s] || s || "未知"
+            }[s] ||
+            s ||
+            "未知"
         );
     }
 
