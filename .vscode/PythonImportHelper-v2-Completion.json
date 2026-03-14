@@ -92,6 +92,14 @@
         "documentation": {}
     },
     {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
         "label": "Optional",
         "importPath": "typing",
         "description": "typing",
@@ -148,6 +156,30 @@
         "documentation": {}
     },
     {
+        "label": "List",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "Sequence",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "Tuple",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
         "label": "Dict",
         "importPath": "typing",
         "description": "typing",
@@ -196,7 +228,31 @@
         "documentation": {}
     },
     {
+        "label": "List",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
         "label": "Optional",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "List",
+        "importPath": "typing",
+        "description": "typing",
+        "isExtraImport": true,
+        "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "Sequence",
         "importPath": "typing",
         "description": "typing",
         "isExtraImport": true,
@@ -265,6 +321,22 @@
         "description": "typing",
         "isExtraImport": true,
         "detail": "typing",
+        "documentation": {}
+    },
+    {
+        "label": "uuid4",
+        "importPath": "uuid",
+        "description": "uuid",
+        "isExtraImport": true,
+        "detail": "uuid",
+        "documentation": {}
+    },
+    {
+        "label": "uuid4",
+        "importPath": "uuid",
+        "description": "uuid",
+        "isExtraImport": true,
+        "detail": "uuid",
         "documentation": {}
     },
     {
@@ -350,12 +422,11 @@
         "documentation": {}
     },
     {
-        "label": "base64",
-        "kind": 6,
+        "label": "BytesIO",
+        "importPath": "io",
+        "description": "io",
         "isExtraImport": true,
-        "importPath": "base64",
-        "description": "base64",
-        "detail": "base64",
+        "detail": "io",
         "documentation": {}
     },
     {
@@ -367,35 +438,19 @@
         "documentation": {}
     },
     {
-        "label": "load_dotenv",
-        "importPath": "dotenv",
-        "description": "dotenv",
+        "label": "Document",
+        "importPath": "docx",
+        "description": "docx",
         "isExtraImport": true,
-        "detail": "dotenv",
+        "detail": "docx",
         "documentation": {}
     },
     {
-        "label": "load_dotenv",
-        "importPath": "dotenv",
-        "description": "dotenv",
+        "label": "Image",
+        "importPath": "PIL",
+        "description": "PIL",
         "isExtraImport": true,
-        "detail": "dotenv",
-        "documentation": {}
-    },
-    {
-        "label": "OpenAI",
-        "importPath": "openai",
-        "description": "openai",
-        "isExtraImport": true,
-        "detail": "openai",
-        "documentation": {}
-    },
-    {
-        "label": "OpenAI",
-        "importPath": "openai",
-        "description": "openai",
-        "isExtraImport": true,
-        "detail": "openai",
+        "detail": "PIL",
         "documentation": {}
     },
     {
@@ -439,6 +494,63 @@
         "documentation": {}
     },
     {
+        "label": "PdfReader",
+        "importPath": "pypdf",
+        "description": "pypdf",
+        "isExtraImport": true,
+        "detail": "pypdf",
+        "documentation": {}
+    },
+    {
+        "label": "base64",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "base64",
+        "description": "base64",
+        "detail": "base64",
+        "documentation": {}
+    },
+    {
+        "label": "load_dotenv",
+        "importPath": "dotenv",
+        "description": "dotenv",
+        "isExtraImport": true,
+        "detail": "dotenv",
+        "documentation": {}
+    },
+    {
+        "label": "load_dotenv",
+        "importPath": "dotenv",
+        "description": "dotenv",
+        "isExtraImport": true,
+        "detail": "dotenv",
+        "documentation": {}
+    },
+    {
+        "label": "load_dotenv",
+        "importPath": "dotenv",
+        "description": "dotenv",
+        "isExtraImport": true,
+        "detail": "dotenv",
+        "documentation": {}
+    },
+    {
+        "label": "OpenAI",
+        "importPath": "openai",
+        "description": "openai",
+        "isExtraImport": true,
+        "detail": "openai",
+        "documentation": {}
+    },
+    {
+        "label": "OpenAI",
+        "importPath": "openai",
+        "description": "openai",
+        "isExtraImport": true,
+        "detail": "openai",
+        "documentation": {}
+    },
+    {
         "label": "FastAPI",
         "importPath": "fastapi",
         "description": "fastapi",
@@ -447,7 +559,39 @@
         "documentation": {}
     },
     {
+        "label": "File",
+        "importPath": "fastapi",
+        "description": "fastapi",
+        "isExtraImport": true,
+        "detail": "fastapi",
+        "documentation": {}
+    },
+    {
+        "label": "Form",
+        "importPath": "fastapi",
+        "description": "fastapi",
+        "isExtraImport": true,
+        "detail": "fastapi",
+        "documentation": {}
+    },
+    {
         "label": "HTTPException",
+        "importPath": "fastapi",
+        "description": "fastapi",
+        "isExtraImport": true,
+        "detail": "fastapi",
+        "documentation": {}
+    },
+    {
+        "label": "Request",
+        "importPath": "fastapi",
+        "description": "fastapi",
+        "isExtraImport": true,
+        "detail": "fastapi",
+        "documentation": {}
+    },
+    {
+        "label": "UploadFile",
         "importPath": "fastapi",
         "description": "fastapi",
         "isExtraImport": true,
@@ -468,6 +612,46 @@
         "description": "fastapi.middleware.cors",
         "isExtraImport": true,
         "detail": "fastapi.middleware.cors",
+        "documentation": {}
+    },
+    {
+        "label": "BaseModel",
+        "importPath": "pydantic",
+        "description": "pydantic",
+        "isExtraImport": true,
+        "detail": "pydantic",
+        "documentation": {}
+    },
+    {
+        "label": "Field",
+        "importPath": "pydantic",
+        "description": "pydantic",
+        "isExtraImport": true,
+        "detail": "pydantic",
+        "documentation": {}
+    },
+    {
+        "label": "BaseModel",
+        "importPath": "pydantic",
+        "description": "pydantic",
+        "isExtraImport": true,
+        "detail": "pydantic",
+        "documentation": {}
+    },
+    {
+        "label": "Field",
+        "importPath": "pydantic",
+        "description": "pydantic",
+        "isExtraImport": true,
+        "detail": "pydantic",
+        "documentation": {}
+    },
+    {
+        "label": "HttpUrl",
+        "importPath": "pydantic",
+        "description": "pydantic",
+        "isExtraImport": true,
+        "detail": "pydantic",
         "documentation": {}
     },
     {
@@ -497,35 +681,19 @@
         "documentation": {}
     },
     {
+        "label": "annotations",
+        "importPath": "__future__",
+        "description": "__future__",
+        "isExtraImport": true,
+        "detail": "__future__",
+        "documentation": {}
+    },
+    {
         "label": "Enum",
         "importPath": "enum",
         "description": "enum",
         "isExtraImport": true,
         "detail": "enum",
-        "documentation": {}
-    },
-    {
-        "label": "BaseModel",
-        "importPath": "pydantic",
-        "description": "pydantic",
-        "isExtraImport": true,
-        "detail": "pydantic",
-        "documentation": {}
-    },
-    {
-        "label": "Field",
-        "importPath": "pydantic",
-        "description": "pydantic",
-        "isExtraImport": true,
-        "detail": "pydantic",
-        "documentation": {}
-    },
-    {
-        "label": "HttpUrl",
-        "importPath": "pydantic",
-        "description": "pydantic",
-        "isExtraImport": true,
-        "detail": "pydantic",
         "documentation": {}
     },
     {
@@ -667,12 +835,111 @@
         "documentation": {}
     },
     {
+        "label": "infer_upload_type",
+        "kind": 2,
+        "importPath": "backend.ingest",
+        "description": "backend.ingest",
+        "peekOfCode": "def infer_upload_type(filename: str) -> str:\n    ext = Path(filename or \"\").suffix.lower()\n    if ext in _TEXT_EXTS:\n        return \"txt\"\n    if ext in _DOCX_EXTS:\n        return \"docx\"\n    if ext in _PDF_EXTS:\n        return \"pdf\"\n    if ext in _IMAGE_EXTS:\n        return \"image\"",
+        "detail": "backend.ingest",
+        "documentation": {}
+    },
+    {
+        "label": "extract_reference_context",
+        "kind": 2,
+        "importPath": "backend.ingest",
+        "description": "backend.ingest",
+        "peekOfCode": "def extract_reference_context(\n    files: Sequence[Tuple[str, bytes]],\n    *,\n    max_chars: int = 12000,\n) -> str:\n    \"\"\"Build prompt-ready context text from supplementary files.\n    Supported reference formats: txt/docx/pdf.\n    \"\"\"\n    parts: List[str] = []\n    for name, content in files:",
+        "detail": "backend.ingest",
+        "documentation": {}
+    },
+    {
+        "label": "extract_reference_documents",
+        "kind": 2,
+        "importPath": "backend.ingest",
+        "description": "backend.ingest",
+        "peekOfCode": "def extract_reference_documents(\n    files: Sequence[Tuple[str, bytes]],\n    *,\n    max_chars_per_doc: int = 60000,\n) -> List[dict]:\n    \"\"\"Extract reference files as structured documents for RAG retrieval.\"\"\"\n    docs: List[dict] = []\n    for name, content in files:\n        if not content:\n            continue",
+        "detail": "backend.ingest",
+        "documentation": {}
+    },
+    {
+        "label": "is_supported_reference_file",
+        "kind": 2,
+        "importPath": "backend.ingest",
+        "description": "backend.ingest",
+        "peekOfCode": "def is_supported_reference_file(filename: str) -> bool:\n    ext = Path(filename or \"\").suffix.lower()\n    return ext in _REFERENCE_TEXT_EXTS\ndef build_bundle_from_upload(\n    filename: str,\n    content: bytes,\n) -> Tuple[ArticleBundle, str, bool]:\n    \"\"\"Parse uploaded content to a bundle.\n    Returns ``(bundle, upload_type, disable_multimodal)``.\n    \"\"\"",
+        "detail": "backend.ingest",
+        "documentation": {}
+    },
+    {
+        "label": "build_bundle_from_upload",
+        "kind": 2,
+        "importPath": "backend.ingest",
+        "description": "backend.ingest",
+        "peekOfCode": "def build_bundle_from_upload(\n    filename: str,\n    content: bytes,\n) -> Tuple[ArticleBundle, str, bool]:\n    \"\"\"Parse uploaded content to a bundle.\n    Returns ``(bundle, upload_type, disable_multimodal)``.\n    \"\"\"\n    if not content:\n        raise ValueError(\"Empty upload content\")\n    upload_type = infer_upload_type(filename)",
+        "detail": "backend.ingest",
+        "documentation": {}
+    },
+    {
+        "label": "_TEXT_EXTS",
+        "kind": 5,
+        "importPath": "backend.ingest",
+        "description": "backend.ingest",
+        "peekOfCode": "_TEXT_EXTS = {\".txt\"}\n_DOCX_EXTS = {\".docx\"}\n_PDF_EXTS = {\".pdf\"}\n_IMAGE_EXTS = {\".png\", \".jpg\", \".jpeg\", \".bmp\", \".gif\", \".webp\", \".tif\", \".tiff\"}\n_REFERENCE_TEXT_EXTS = _TEXT_EXTS | _DOCX_EXTS | _PDF_EXTS\ndef _split_text_blocks(text: str, max_chars: int = 1200) -> List[TextBlock]:\n    cleaned = (text or \"\").replace(\"\\r\", \"\").strip()\n    if not cleaned:\n        return []\n    chunks: List[str] = []",
+        "detail": "backend.ingest",
+        "documentation": {}
+    },
+    {
+        "label": "_DOCX_EXTS",
+        "kind": 5,
+        "importPath": "backend.ingest",
+        "description": "backend.ingest",
+        "peekOfCode": "_DOCX_EXTS = {\".docx\"}\n_PDF_EXTS = {\".pdf\"}\n_IMAGE_EXTS = {\".png\", \".jpg\", \".jpeg\", \".bmp\", \".gif\", \".webp\", \".tif\", \".tiff\"}\n_REFERENCE_TEXT_EXTS = _TEXT_EXTS | _DOCX_EXTS | _PDF_EXTS\ndef _split_text_blocks(text: str, max_chars: int = 1200) -> List[TextBlock]:\n    cleaned = (text or \"\").replace(\"\\r\", \"\").strip()\n    if not cleaned:\n        return []\n    chunks: List[str] = []\n    for paragraph in cleaned.split(\"\\n\"):",
+        "detail": "backend.ingest",
+        "documentation": {}
+    },
+    {
+        "label": "_PDF_EXTS",
+        "kind": 5,
+        "importPath": "backend.ingest",
+        "description": "backend.ingest",
+        "peekOfCode": "_PDF_EXTS = {\".pdf\"}\n_IMAGE_EXTS = {\".png\", \".jpg\", \".jpeg\", \".bmp\", \".gif\", \".webp\", \".tif\", \".tiff\"}\n_REFERENCE_TEXT_EXTS = _TEXT_EXTS | _DOCX_EXTS | _PDF_EXTS\ndef _split_text_blocks(text: str, max_chars: int = 1200) -> List[TextBlock]:\n    cleaned = (text or \"\").replace(\"\\r\", \"\").strip()\n    if not cleaned:\n        return []\n    chunks: List[str] = []\n    for paragraph in cleaned.split(\"\\n\"):\n        part = paragraph.strip()",
+        "detail": "backend.ingest",
+        "documentation": {}
+    },
+    {
+        "label": "_IMAGE_EXTS",
+        "kind": 5,
+        "importPath": "backend.ingest",
+        "description": "backend.ingest",
+        "peekOfCode": "_IMAGE_EXTS = {\".png\", \".jpg\", \".jpeg\", \".bmp\", \".gif\", \".webp\", \".tif\", \".tiff\"}\n_REFERENCE_TEXT_EXTS = _TEXT_EXTS | _DOCX_EXTS | _PDF_EXTS\ndef _split_text_blocks(text: str, max_chars: int = 1200) -> List[TextBlock]:\n    cleaned = (text or \"\").replace(\"\\r\", \"\").strip()\n    if not cleaned:\n        return []\n    chunks: List[str] = []\n    for paragraph in cleaned.split(\"\\n\"):\n        part = paragraph.strip()\n        if not part:",
+        "detail": "backend.ingest",
+        "documentation": {}
+    },
+    {
+        "label": "_REFERENCE_TEXT_EXTS",
+        "kind": 5,
+        "importPath": "backend.ingest",
+        "description": "backend.ingest",
+        "peekOfCode": "_REFERENCE_TEXT_EXTS = _TEXT_EXTS | _DOCX_EXTS | _PDF_EXTS\ndef _split_text_blocks(text: str, max_chars: int = 1200) -> List[TextBlock]:\n    cleaned = (text or \"\").replace(\"\\r\", \"\").strip()\n    if not cleaned:\n        return []\n    chunks: List[str] = []\n    for paragraph in cleaned.split(\"\\n\"):\n        part = paragraph.strip()\n        if not part:\n            continue",
+        "detail": "backend.ingest",
+        "documentation": {}
+    },
+    {
         "label": "audit_multimodal",
         "kind": 2,
         "importPath": "backend.llm_multimodal",
         "description": "backend.llm_multimodal",
-        "peekOfCode": "def audit_multimodal(\n    bundle: ArticleBundle, checklist: Optional[List[str]] = None\n) -> List[Issue]:\n    \"\"\"Call Qwen VLM with an image and structured summary to check consistency.\"\"\"\n    image_path = _select_image_path(bundle)\n    if not image_path:\n        return []\n    original_data_url, width, height = _encode_original(image_path)\n    grid_data_url, grid_meta, grid_path = _encode_grid_image(image_path)\n    if not original_data_url or not grid_data_url:",
+        "peekOfCode": "def audit_multimodal(\n    bundle: ArticleBundle,\n    checklist: Optional[List[str]] = None,\n    reference_context: str = \"\",\n    enable_thinking: bool = True,\n) -> List[Issue]:\n    \"\"\"Call Qwen VLM with an image and structured summary to check consistency.\"\"\"\n    image_path = _select_image_path(bundle)\n    if not image_path:\n        return []",
         "detail": "backend.llm_multimodal",
+        "documentation": {}
+    },
+    {
+        "label": "merge_llm_vlm_issues",
+        "kind": 2,
+        "importPath": "backend.llm_text",
+        "description": "backend.llm_text",
+        "peekOfCode": "def merge_llm_vlm_issues(\n    issues_text: Optional[List],\n    issues_vlm: Optional[List],\n    enable_thinking: bool = False,\n) -> List[dict]:\n    \"\"\"Merge text-LLM and VLM issues with text-LLM priority on duplicates.\"\"\"\n    text_items = [d for d in (_issue_to_dict(i) for i in (issues_text or [])) if d]\n    vlm_items = [d for d in (_issue_to_dict(i) for i in (issues_vlm or [])) if d]\n    if not text_items and not vlm_items:\n        return []",
+        "detail": "backend.llm_text",
         "documentation": {}
     },
     {
@@ -680,8 +947,26 @@
         "kind": 2,
         "importPath": "backend.llm_text",
         "description": "backend.llm_text",
-        "peekOfCode": "def audit_text(\n    bundle: ArticleBundle, checklist: Optional[List[str]] = None\n) -> List[Issue]:\n    \"\"\"Call text LLM to flag typos/format issues. Returns an Issue list.\"\"\"\n    if not bundle.text_blocks:\n        return []\n    snippet = \"\\n\\n\".join([b.text for b in bundle.text_blocks])\n    # debug\n    print(\"snippet:\", snippet)\n    checklist = [item.strip() for item in (checklist or []) if item and item.strip()]",
+        "peekOfCode": "def audit_text(\n    bundle: ArticleBundle,\n    checklist: Optional[List[str]] = None,\n    reference_context: str = \"\",\n    enable_thinking: bool = True,\n) -> List[Issue]:\n    \"\"\"Call text LLM to flag typos/format issues. Returns an Issue list.\"\"\"\n    if not bundle.text_blocks:\n        return []\n    snippet = \"\\n\\n\".join([b.text for b in bundle.text_blocks])",
         "detail": "backend.llm_text",
+        "documentation": {}
+    },
+    {
+        "label": "ChecklistKBCreateRequest",
+        "kind": 6,
+        "importPath": "backend.main",
+        "description": "backend.main",
+        "peekOfCode": "class ChecklistKBCreateRequest(BaseModel):\n    name: str = Field(min_length=1, max_length=80)\n    items: List[str] = Field(default_factory=list)\nclass KBRenameRequest(BaseModel):\n    name: str = Field(min_length=1, max_length=80)\ndef _coerce_user_token(request: Request) -> str:\n    raw = (\n        request.cookies.get(USER_TOKEN_COOKIE)\n        or request.headers.get(\"X-User-Token\")\n        or \"\"",
+        "detail": "backend.main",
+        "documentation": {}
+    },
+    {
+        "label": "KBRenameRequest",
+        "kind": 6,
+        "importPath": "backend.main",
+        "description": "backend.main",
+        "peekOfCode": "class KBRenameRequest(BaseModel):\n    name: str = Field(min_length=1, max_length=80)\ndef _coerce_user_token(request: Request) -> str:\n    raw = (\n        request.cookies.get(USER_TOKEN_COOKIE)\n        or request.headers.get(\"X-User-Token\")\n        or \"\"\n    )\n    token = str(raw).strip()\n    if not token:",
+        "detail": "backend.main",
         "documentation": {}
     },
     {
@@ -689,7 +974,7 @@
         "kind": 2,
         "importPath": "backend.main",
         "description": "backend.main",
-        "peekOfCode": "def health():\n    return {\"status\": \"ok\"}\n@app.post(\"/api/audit\", response_model=AuditStatusResponse)\ndef create_audit(request: AuditRequest):\n    return start_audit(request.url, checklist=request.checklist)\n@app.get(\"/api/audit/{task_id}\", response_model=AuditStatusResponse)\ndef read_audit(task_id: str):\n    status = get_status(task_id)\n    if not status:\n        raise HTTPException(status_code=404, detail=\"task not found\")",
+        "peekOfCode": "def health():\n    return {\"status\": \"ok\"}\n@app.post(\"/api/audit\", response_model=AuditStatusResponse)\ndef create_audit(request: AuditRequest, req: Request):\n    user_token = _coerce_user_token(req)\n    return start_audit(\n        str(request.url),\n        checklist=request.checklist,\n        fast_mode=request.fast_mode,\n        source_mode=\"url\",",
         "detail": "backend.main",
         "documentation": {}
     },
@@ -698,7 +983,7 @@
         "kind": 2,
         "importPath": "backend.main",
         "description": "backend.main",
-        "peekOfCode": "def create_audit(request: AuditRequest):\n    return start_audit(request.url, checklist=request.checklist)\n@app.get(\"/api/audit/{task_id}\", response_model=AuditStatusResponse)\ndef read_audit(task_id: str):\n    status = get_status(task_id)\n    if not status:\n        raise HTTPException(status_code=404, detail=\"task not found\")\n    return status",
+        "peekOfCode": "def create_audit(request: AuditRequest, req: Request):\n    user_token = _coerce_user_token(req)\n    return start_audit(\n        str(request.url),\n        checklist=request.checklist,\n        fast_mode=request.fast_mode,\n        source_mode=\"url\",\n        user_token=user_token,\n    )\nasync def _parse_reference_files(files: List[UploadFile]) -> List[dict]:",
         "detail": "backend.main",
         "documentation": {}
     },
@@ -707,7 +992,70 @@
         "kind": 2,
         "importPath": "backend.main",
         "description": "backend.main",
-        "peekOfCode": "def read_audit(task_id: str):\n    status = get_status(task_id)\n    if not status:\n        raise HTTPException(status_code=404, detail=\"task not found\")\n    return status",
+        "peekOfCode": "def read_audit(task_id: str, request: Request):\n    user_token = _coerce_user_token(request)\n    status = get_status(task_id, user_token=user_token)\n    if not status:\n        raise HTTPException(status_code=404, detail=\"task not found\")\n    return status\n@app.get(\"/api/kb/checklists\")\ndef list_checklist_kb(request: Request):\n    user_token = _coerce_user_token(request)\n    items = list_knowledge_bases(user_token, \"checklist\")",
+        "detail": "backend.main",
+        "documentation": {}
+    },
+    {
+        "label": "list_checklist_kb",
+        "kind": 2,
+        "importPath": "backend.main",
+        "description": "backend.main",
+        "peekOfCode": "def list_checklist_kb(request: Request):\n    user_token = _coerce_user_token(request)\n    items = list_knowledge_bases(user_token, \"checklist\")\n    return {\n        \"items\": [\n            {\n                \"kb_id\": item[\"kb_id\"],\n                \"name\": item[\"name\"],\n                \"items\": (item.get(\"payload\") or {}).get(\"items\") or [],\n                \"created_at\": item[\"created_at\"],",
+        "detail": "backend.main",
+        "documentation": {}
+    },
+    {
+        "label": "create_checklist_kb",
+        "kind": 2,
+        "importPath": "backend.main",
+        "description": "backend.main",
+        "peekOfCode": "def create_checklist_kb(payload: ChecklistKBCreateRequest, request: Request):\n    user_token = _coerce_user_token(request)\n    items = [str(v).strip() for v in payload.items if str(v).strip()]\n    if not items:\n        raise HTTPException(status_code=400, detail=\"checklist items are empty\")\n    record = create_knowledge_base(\n        user_token=user_token,\n        kb_type=\"checklist\",\n        name=payload.name.strip(),\n        payload={\"items\": list(dict.fromkeys(items))},",
+        "detail": "backend.main",
+        "documentation": {}
+    },
+    {
+        "label": "rename_checklist_kb",
+        "kind": 2,
+        "importPath": "backend.main",
+        "description": "backend.main",
+        "peekOfCode": "def rename_checklist_kb(kb_id: str, payload: KBRenameRequest, request: Request):\n    user_token = _coerce_user_token(request)\n    item = get_knowledge_base(user_token, \"checklist\", kb_id)\n    if not item:\n        raise HTTPException(status_code=404, detail=\"knowledge base not found\")\n    updated = update_knowledge_base(\n        user_token,\n        \"checklist\",\n        kb_id,\n        name=payload.name.strip(),",
+        "detail": "backend.main",
+        "documentation": {}
+    },
+    {
+        "label": "remove_checklist_kb",
+        "kind": 2,
+        "importPath": "backend.main",
+        "description": "backend.main",
+        "peekOfCode": "def remove_checklist_kb(kb_id: str, request: Request):\n    user_token = _coerce_user_token(request)\n    deleted = delete_knowledge_base(user_token, \"checklist\", kb_id)\n    if not deleted:\n        raise HTTPException(status_code=404, detail=\"knowledge base not found\")\n    return {\"ok\": True}\n@app.get(\"/api/kb/references\")\ndef list_reference_kb(request: Request):\n    user_token = _coerce_user_token(request)\n    items = list_knowledge_bases(user_token, \"reference\")",
+        "detail": "backend.main",
+        "documentation": {}
+    },
+    {
+        "label": "list_reference_kb",
+        "kind": 2,
+        "importPath": "backend.main",
+        "description": "backend.main",
+        "peekOfCode": "def list_reference_kb(request: Request):\n    user_token = _coerce_user_token(request)\n    items = list_knowledge_bases(user_token, \"reference\")\n    return {\n        \"items\": [\n            {\n                \"kb_id\": item[\"kb_id\"],\n                \"name\": item[\"name\"],\n                \"source_name\": (item.get(\"payload\") or {}).get(\"name\") or item[\"name\"],\n                \"created_at\": item[\"created_at\"],",
+        "detail": "backend.main",
+        "documentation": {}
+    },
+    {
+        "label": "rename_reference_kb",
+        "kind": 2,
+        "importPath": "backend.main",
+        "description": "backend.main",
+        "peekOfCode": "def rename_reference_kb(kb_id: str, payload: KBRenameRequest, request: Request):\n    user_token = _coerce_user_token(request)\n    item = get_knowledge_base(user_token, \"reference\", kb_id)\n    if not item:\n        raise HTTPException(status_code=404, detail=\"knowledge base not found\")\n    current_payload = item.get(\"payload\") or {}\n    text = str(current_payload.get(\"text\") or \"\").strip()\n    new_name = payload.name.strip()\n    new_payload = {\"name\": new_name, \"text\": text}\n    updated = update_knowledge_base(",
+        "detail": "backend.main",
+        "documentation": {}
+    },
+    {
+        "label": "remove_reference_kb",
+        "kind": 2,
+        "importPath": "backend.main",
+        "description": "backend.main",
+        "peekOfCode": "def remove_reference_kb(kb_id: str, request: Request):\n    user_token = _coerce_user_token(request)\n    deleted = delete_knowledge_base(user_token, \"reference\", kb_id)\n    if not deleted:\n        raise HTTPException(status_code=404, detail=\"knowledge base not found\")\n    delete_reference_documents(user_token, kb_id)\n    return {\"ok\": True}",
         "detail": "backend.main",
         "documentation": {}
     },
@@ -716,7 +1064,7 @@
         "kind": 5,
         "importPath": "backend.main",
         "description": "backend.main",
-        "peekOfCode": "app = FastAPI(title=\"Audit Assistant API\")\ncaptures_dir = Path(__file__).resolve().parent / \"captures\"\ncaptures_dir.mkdir(exist_ok=True)\napp.mount(\"/api/captures\", StaticFiles(directory=str(captures_dir)), name=\"captures\")\napp.add_middleware(\n    CORSMiddleware,\n    allow_origins=[\"http://localhost:8001\", \"http://127.0.0.1:8001\", \"*\"],\n    allow_credentials=True,\n    allow_methods=[\"*\"],\n    allow_headers=[\"*\"],",
+        "peekOfCode": "app = FastAPI(title=\"Audit Assistant API\")\ncaptures_dir = Path(__file__).resolve().parent / \"captures\"\ncaptures_dir.mkdir(exist_ok=True)\napp.mount(\"/api/captures\", StaticFiles(directory=str(captures_dir)), name=\"captures\")\napp.add_middleware(\n    CORSMiddleware,\n    allow_origins=[\"http://localhost:8001\", \"http://127.0.0.1:8001\"],\n    allow_credentials=True,\n    allow_methods=[\"*\"],\n    allow_headers=[\"*\"],",
         "detail": "backend.main",
         "documentation": {}
     },
@@ -725,7 +1073,16 @@
         "kind": 5,
         "importPath": "backend.main",
         "description": "backend.main",
-        "peekOfCode": "captures_dir = Path(__file__).resolve().parent / \"captures\"\ncaptures_dir.mkdir(exist_ok=True)\napp.mount(\"/api/captures\", StaticFiles(directory=str(captures_dir)), name=\"captures\")\napp.add_middleware(\n    CORSMiddleware,\n    allow_origins=[\"http://localhost:8001\", \"http://127.0.0.1:8001\", \"*\"],\n    allow_credentials=True,\n    allow_methods=[\"*\"],\n    allow_headers=[\"*\"],\n)",
+        "peekOfCode": "captures_dir = Path(__file__).resolve().parent / \"captures\"\ncaptures_dir.mkdir(exist_ok=True)\napp.mount(\"/api/captures\", StaticFiles(directory=str(captures_dir)), name=\"captures\")\napp.add_middleware(\n    CORSMiddleware,\n    allow_origins=[\"http://localhost:8001\", \"http://127.0.0.1:8001\"],\n    allow_credentials=True,\n    allow_methods=[\"*\"],\n    allow_headers=[\"*\"],\n)",
+        "detail": "backend.main",
+        "documentation": {}
+    },
+    {
+        "label": "USER_TOKEN_COOKIE",
+        "kind": 5,
+        "importPath": "backend.main",
+        "description": "backend.main",
+        "peekOfCode": "USER_TOKEN_COOKIE = \"audit_user_token\"\nclass ChecklistKBCreateRequest(BaseModel):\n    name: str = Field(min_length=1, max_length=80)\n    items: List[str] = Field(default_factory=list)\nclass KBRenameRequest(BaseModel):\n    name: str = Field(min_length=1, max_length=80)\ndef _coerce_user_token(request: Request) -> str:\n    raw = (\n        request.cookies.get(USER_TOKEN_COOKIE)\n        or request.headers.get(\"X-User-Token\")",
         "detail": "backend.main",
         "documentation": {}
     },
@@ -736,6 +1093,42 @@
         "description": "backend.parser",
         "peekOfCode": "def enrich_bundle(bundle: ArticleBundle, base_url: str) -> ArticleBundle:\n    \"\"\"Resolve links and download images; returns updated bundle.\"\"\"\n    client = httpx.Client(timeout=15)\n    links = [_resolve_link(client, base_url, link) for link in bundle.links]\n    image_dir = Path(\"captures/images\")\n    images = [\n        _download_image(client, base_url, asset, image_dir) for asset in bundle.images\n    ]\n    client.close()\n    return bundle.model_copy(",
         "detail": "backend.parser",
+        "documentation": {}
+    },
+    {
+        "label": "index_reference_documents",
+        "kind": 2,
+        "importPath": "backend.rag",
+        "description": "backend.rag",
+        "peekOfCode": "def index_reference_documents(\n    user_token: str,\n    kb_id: str,\n    docs: Sequence[dict],\n) -> None:\n    \"\"\"Persist reference chunks into a user-scoped Chroma collection.\"\"\"\n    if not user_token or not kb_id:\n        return\n    docs_input = [doc for doc in docs if isinstance(doc, dict)]\n    if not docs_input:",
+        "detail": "backend.rag",
+        "documentation": {}
+    },
+    {
+        "label": "delete_reference_documents",
+        "kind": 2,
+        "importPath": "backend.rag",
+        "description": "backend.rag",
+        "peekOfCode": "def delete_reference_documents(user_token: str, kb_id: str) -> None:\n    if not user_token or not kb_id:\n        return\n    try:\n        client = _build_persistent_client()\n        embedding_function = _build_embedding_function()\n        collection = client.get_collection(\n            name=_user_collection_name(user_token),\n            embedding_function=embedding_function,\n        )",
+        "detail": "backend.rag",
+        "documentation": {}
+    },
+    {
+        "label": "retrieve_reference_context",
+        "kind": 2,
+        "importPath": "backend.rag",
+        "description": "backend.rag",
+        "peekOfCode": "def retrieve_reference_context(\n    reference_docs: Sequence[dict],\n    query_text: str,\n    *,\n    user_token: str = \"\",\n    reference_kb_ids: Sequence[str] | None = None,\n    top_k: int = 8,\n    max_chars: int = 6000,\n) -> str:\n    \"\"\"Retrieve top-k relevant chunks from reference docs using Chroma embeddings.",
+        "detail": "backend.rag",
+        "documentation": {}
+    },
+    {
+        "label": "CHROMA_DIR",
+        "kind": 5,
+        "importPath": "backend.rag",
+        "description": "backend.rag",
+        "peekOfCode": "CHROMA_DIR = os.path.join(os.path.dirname(__file__), \"chroma_store\")\ndef _build_embedding_function():\n    \"\"\"Build embedding function from env; fallback to Chroma default embedding.\"\"\"\n    api_key = (os.getenv(\"EMBEDDING_API_KEY\") or \"\").strip()\n    model = (os.getenv(\"EMBEDDING_MODEL\") or \"\").strip()\n    base_url = (os.getenv(\"EMBEDDING_BASE_URL\") or \"\").strip()\n    # If no third-party config is provided, use Chroma's default local embedding.\n    if not api_key or not model:\n        from chromadb.utils.embedding_functions import DefaultEmbeddingFunction\n        return DefaultEmbeddingFunction()",
+        "detail": "backend.rag",
         "documentation": {}
     },
     {
@@ -842,7 +1235,7 @@
         "kind": 6,
         "importPath": "backend.schema",
         "description": "backend.schema",
-        "peekOfCode": "class Issue(BaseModel):\n    id: str\n    type: IssueType\n    severity: Severity\n    evidence: IssueEvidence\n    recommendation: Optional[str] = None\n    confidence: Optional[float] = None\nclass ArticleBundle(BaseModel):\n    source_url: Optional[str] = None\n    text_blocks: List[TextBlock] = Field(default_factory=list)",
+        "peekOfCode": "class Issue(BaseModel):\n    id: str\n    type: IssueType\n    severity: Severity\n    evidence: IssueEvidence\n    recommendation: Optional[str] = None\n    confidence: Optional[float] = None\nclass ArticleBundle(BaseModel):\n    source_url: Optional[str] = None\n    title: Optional[str] = None",
         "detail": "backend.schema",
         "documentation": {}
     },
@@ -851,7 +1244,7 @@
         "kind": 6,
         "importPath": "backend.schema",
         "description": "backend.schema",
-        "peekOfCode": "class ArticleBundle(BaseModel):\n    source_url: Optional[str] = None\n    text_blocks: List[TextBlock] = Field(default_factory=list)\n    links: List[LinkItem] = Field(default_factory=list)\n    images: List[ImageAsset] = Field(default_factory=list)\n    qrcodes: List[QRCodeEntry] = Field(default_factory=list)\n    ocr_texts: List[OCRText] = Field(default_factory=list)\n    screenshots: List[ScreenshotMeta] = Field(default_factory=list)\nclass AuditRequest(BaseModel):\n    url: HttpUrl",
+        "peekOfCode": "class ArticleBundle(BaseModel):\n    source_url: Optional[str] = None\n    title: Optional[str] = None\n    text_blocks: List[TextBlock] = Field(default_factory=list)\n    links: List[LinkItem] = Field(default_factory=list)\n    images: List[ImageAsset] = Field(default_factory=list)\n    qrcodes: List[QRCodeEntry] = Field(default_factory=list)\n    ocr_texts: List[OCRText] = Field(default_factory=list)\n    screenshots: List[ScreenshotMeta] = Field(default_factory=list)\nclass AuditRequest(BaseModel):",
         "detail": "backend.schema",
         "documentation": {}
     },
@@ -860,7 +1253,7 @@
         "kind": 6,
         "importPath": "backend.schema",
         "description": "backend.schema",
-        "peekOfCode": "class AuditRequest(BaseModel):\n    url: HttpUrl\n    checklist: List[str] = Field(default_factory=list)\nclass AuditStartResponse(BaseModel):\n    task_id: str\n    status: TaskStatus\nclass AuditStatusResponse(BaseModel):\n    task_id: str\n    status: TaskStatus\n    result: Optional[ArticleBundle] = None",
+        "peekOfCode": "class AuditRequest(BaseModel):\n    url: HttpUrl\n    checklist: List[str] = Field(default_factory=list)\n    fast_mode: bool = False\nclass AuditStartResponse(BaseModel):\n    task_id: str\n    status: TaskStatus\nclass AuditStatusResponse(BaseModel):\n    task_id: str\n    status: TaskStatus",
         "detail": "backend.schema",
         "documentation": {}
     },
@@ -887,7 +1280,7 @@
         "kind": 2,
         "importPath": "backend.store",
         "description": "backend.store",
-        "peekOfCode": "def create_task(url: str, checklist: Optional[list[str]] = None) -> dict:\n    _ensure_db()\n    task_id = uuid4().hex\n    now = int(time.time())\n    status = TaskStatus.running.value\n    message = \"Audit pipeline queued.\"\n    progress = 0\n    checklist = checklist or []\n    conn = sqlite3.connect(DB_PATH)\n    try:",
+        "peekOfCode": "def create_task(\n    url: str,\n    checklist: Optional[list[str]] = None,\n    *,\n    user_token: Optional[str] = None,\n) -> dict:\n    _ensure_db()\n    task_id = uuid4().hex\n    now = int(time.time())\n    status = TaskStatus.running.value",
         "detail": "backend.store",
         "documentation": {}
     },
@@ -905,7 +1298,61 @@
         "kind": 2,
         "importPath": "backend.store",
         "description": "backend.store",
-        "peekOfCode": "def get_task(task_id: str) -> Optional[dict]:\n    _ensure_db()\n    conn = sqlite3.connect(DB_PATH)\n    try:\n        cur = conn.execute(\n            \"\"\"\n            SELECT task_id, url, checklist, status, message, progress, result, issues, created_at, updated_at\n            FROM audits WHERE task_id = ?\n            \"\"\",\n            (task_id,),",
+        "peekOfCode": "def get_task(task_id: str, *, user_token: Optional[str] = None) -> Optional[dict]:\n    _ensure_db()\n    conn = sqlite3.connect(DB_PATH)\n    try:\n        if user_token:\n            cur = conn.execute(\n                \"\"\"\n                SELECT task_id, user_token, url, checklist, status, message, progress, result, issues, created_at, updated_at\n                FROM audits WHERE task_id = ? AND user_token = ?\n                \"\"\",",
+        "detail": "backend.store",
+        "documentation": {}
+    },
+    {
+        "label": "create_knowledge_base",
+        "kind": 2,
+        "importPath": "backend.store",
+        "description": "backend.store",
+        "peekOfCode": "def create_knowledge_base(\n    user_token: str,\n    kb_type: str,\n    name: str,\n    payload: Any,\n) -> dict:\n    _ensure_db()\n    kb_id = uuid4().hex\n    now = int(time.time())\n    conn = sqlite3.connect(DB_PATH)",
+        "detail": "backend.store",
+        "documentation": {}
+    },
+    {
+        "label": "list_knowledge_bases",
+        "kind": 2,
+        "importPath": "backend.store",
+        "description": "backend.store",
+        "peekOfCode": "def list_knowledge_bases(user_token: str, kb_type: str) -> list[dict]:\n    _ensure_db()\n    conn = sqlite3.connect(DB_PATH)\n    try:\n        cur = conn.execute(\n            \"\"\"\n            SELECT kb_id, user_token, kb_type, name, payload, created_at, updated_at\n            FROM knowledge_bases\n            WHERE user_token = ? AND kb_type = ?\n            ORDER BY updated_at DESC",
+        "detail": "backend.store",
+        "documentation": {}
+    },
+    {
+        "label": "get_knowledge_bases_by_ids",
+        "kind": 2,
+        "importPath": "backend.store",
+        "description": "backend.store",
+        "peekOfCode": "def get_knowledge_bases_by_ids(\n    user_token: str,\n    kb_type: str,\n    kb_ids: list[str],\n) -> list[dict]:\n    if not kb_ids:\n        return []\n    _ensure_db()\n    placeholders = \", \".join([\"?\"] * len(kb_ids))\n    conn = sqlite3.connect(DB_PATH)",
+        "detail": "backend.store",
+        "documentation": {}
+    },
+    {
+        "label": "get_knowledge_base",
+        "kind": 2,
+        "importPath": "backend.store",
+        "description": "backend.store",
+        "peekOfCode": "def get_knowledge_base(\n    user_token: str,\n    kb_type: str,\n    kb_id: str,\n) -> Optional[dict]:\n    _ensure_db()\n    conn = sqlite3.connect(DB_PATH)\n    try:\n        cur = conn.execute(\n            \"\"\"",
+        "detail": "backend.store",
+        "documentation": {}
+    },
+    {
+        "label": "update_knowledge_base",
+        "kind": 2,
+        "importPath": "backend.store",
+        "description": "backend.store",
+        "peekOfCode": "def update_knowledge_base(\n    user_token: str,\n    kb_type: str,\n    kb_id: str,\n    *,\n    name: str,\n    payload: Any,\n) -> Optional[dict]:\n    _ensure_db()\n    now = int(time.time())",
+        "detail": "backend.store",
+        "documentation": {}
+    },
+    {
+        "label": "delete_knowledge_base",
+        "kind": 2,
+        "importPath": "backend.store",
+        "description": "backend.store",
+        "peekOfCode": "def delete_knowledge_base(\n    user_token: str,\n    kb_type: str,\n    kb_id: str,\n) -> bool:\n    _ensure_db()\n    conn = sqlite3.connect(DB_PATH)\n    try:\n        cur = conn.execute(\n            \"\"\"",
         "detail": "backend.store",
         "documentation": {}
     },
@@ -923,7 +1370,7 @@
         "kind": 2,
         "importPath": "backend.tasks",
         "description": "backend.tasks",
-        "peekOfCode": "def start_audit(url: str, checklist: Optional[List[str]] = None) -> AuditStatusResponse:\n    record = create_task(str(url), checklist=checklist or [])\n    task_id = record[\"task_id\"]\n    thread = Thread(\n        target=_run_pipeline,\n        args=(task_id, str(url), record.get(\"checklist\") or []),\n        daemon=True,\n    )\n    thread.start()\n    return AuditStatusResponse(",
+        "peekOfCode": "def start_audit(\n    source_label: str,\n    checklist: Optional[List[str]] = None,\n    *,\n    user_token: str,\n    fast_mode: bool = False,\n    source_mode: str = \"url\",\n    upload_filename: Optional[str] = None,\n    upload_content: Optional[bytes] = None,\n    reference_docs: Optional[List[dict]] = None,",
         "detail": "backend.tasks",
         "documentation": {}
     },
@@ -932,7 +1379,7 @@
         "kind": 2,
         "importPath": "backend.tasks",
         "description": "backend.tasks",
-        "peekOfCode": "def run_pipeline(\n    task_id: str, url: str, checklist: Optional[List[str]] = None\n) -> Tuple[ArticleBundle, list[Issue]]:\n    \"\"\"Run the full audit pipeline synchronously with progress updates.\"\"\"\n    _update_progress(task_id, 5, \"Starting capture\")\n    bundle = capture_article(url)\n    _update_progress(task_id, 25, \"Parsing & enriching\")\n    bundle = enrich_bundle(bundle, url)\n    _update_progress(task_id, 45, \"Analyzing images\")\n    bundle = analyze_images(bundle)",
+        "peekOfCode": "def run_pipeline(\n    task_id: str,\n    source_label: str,\n    checklist: Optional[List[str]] = None,\n    source_mode: str = \"url\",\n    fast_mode: bool = False,\n    upload_filename: Optional[str] = None,\n    upload_content: Optional[bytes] = None,\n    reference_docs: Optional[List[dict]] = None,\n    reference_kb_ids: Optional[List[str]] = None,",
         "detail": "backend.tasks",
         "documentation": {}
     },
@@ -941,7 +1388,7 @@
         "kind": 2,
         "importPath": "backend.tasks",
         "description": "backend.tasks",
-        "peekOfCode": "def get_status(task_id: str) -> Optional[AuditStatusResponse]:\n    record = get_task(task_id)\n    if not record:\n        return None\n    bundle = None\n    if record.get(\"result\"):\n        try:\n            bundle = ArticleBundle.model_validate(record[\"result\"])\n        except Exception:\n            bundle = None",
+        "peekOfCode": "def get_status(\n    task_id: str, *, user_token: Optional[str] = None\n) -> Optional[AuditStatusResponse]:\n    record = get_task(task_id, user_token=user_token)\n    if not record:\n        return None\n    bundle = None\n    if record.get(\"result\"):\n        try:\n            bundle = ArticleBundle.model_validate(record[\"result\"])",
         "detail": "backend.tasks",
         "documentation": {}
     },

@@ -1156,6 +1156,7 @@ const currentSourceMeta = ref({
     source_label: "",
     url: "",
     file_name: "",
+    article_title: "",
 });
 const todayCount = ref(3);
 const toastMsg = ref("");
@@ -1259,9 +1260,7 @@ const referenceFileNamesText = computed(() => {
     if (!n) return "未选择附加资料";
     return n === 1 ? referenceFiles.value[0].name : `已选择 ${n} 个文件`;
 });
-const currentSourceLabel = computed(
-    () => currentSourceMeta.value?.source_label || urlInput.value || "(未填写)",
-);
+const currentSourceLabel = computed(() => historyTitle(currentSourceMeta.value));
 const apiOrigin = computed(() =>
     API_BASE.startsWith("http") ? API_BASE.replace(/\/api$/, "") : "",
 );
@@ -1385,14 +1384,56 @@ function deriveTitle(url) {
         return url;
     }
 }
+function normalizeText(value) {
+  return String(value || '').trim()
+}
+function isRealTitle(value) {
+  const text = normalizeText(value)
+  return !!text && !/^https?:\/\//i.test(text) && !/^upload:\/\//i.test(text)
+}
+function resolveBundleTitle(result) {
+  const title = normalizeText(result?.title)
+  return isRealTitle(title) ? title : ''
+}
+function historyTitle(item) {
+  if (!item) return '未命名任务'
+  const derived = item.url ? deriveTitle(item.url) : ''
+  const articleTitle = isRealTitle(item.article_title) ? normalizeText(item.article_title) : ''
+  if (articleTitle) return articleTitle
+  const storedTitle = isRealTitle(item.title) ? normalizeText(item.title) : ''
+  if (storedTitle && storedTitle !== derived) return storedTitle
+  if (item.source_type === 'file') {
+    if (item.file_name) return `[文件] ${item.file_name}`
+    if (isRealTitle(item.source_label)) return normalizeText(item.source_label)
+  }
+  if (isRealTitle(item.source_label) && !/^https?:\/\//i.test(item.source_label)) return normalizeText(item.source_label)
+  return derived || '未命名任务'
+}
+function buildHistoryItem(task_id, sourceMeta, data, checklist, issueCount) {
+  const article_title = resolveBundleTitle(data?.result) || normalizeText(sourceMeta?.article_title)
+  const item = {
+    task_id,
+    url: sourceMeta.url,
+    article_title,
+    source_type: sourceMeta.source_type,
+    source_label: sourceMeta.source_label,
+    file_name: sourceMeta.file_name,
+    checklist,
+    status: data.status,
+    progress: data.progress ?? 0,
+    updated_at: Math.floor(Date.now() / 1000),
+  }
+  if (issueCount != null) item.issueCount = issueCount
+  item.title = historyTitle(item)
+  return item
+}
 function loadHistory() {
-    try {
-        taskHistory.value = JSON.parse(
-            localStorage.getItem(HISTORY_KEY) || "[]",
-        );
-    } catch {
-        taskHistory.value = [];
-    }
+  try {
+    const parsed = JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]')
+    taskHistory.value = Array.isArray(parsed)
+      ? parsed.map(item => ({ ...(item || {}), title: historyTitle(item || {}) }))
+      : []
+  } catch { taskHistory.value = [] }
 }
 function saveHistory(list) {
     taskHistory.value = list;
@@ -1732,6 +1773,7 @@ async function startAudit() {
             source_label: urlInput.value.trim(),
             url: urlInput.value.trim(),
             file_name: "",
+            article_title: "",
         };
     } else {
         if (!selectedFile.value) {
@@ -1743,6 +1785,7 @@ async function startAudit() {
             source_label: `[上传] ${selectedFile.value.name}`,
             url: "",
             file_name: selectedFile.value.name,
+            article_title: "",
         };
     }
     resetState();
@@ -1794,23 +1837,13 @@ async function startAudit() {
         message.value = funMessages[0];
         issues.value = normalizeIssues(data.issues || []);
         bundle.value = data.result || null;
-        currentSourceMeta.value = sourceMeta;
-        const title =
-            sourceMeta.source_type === "url"
-                ? deriveTitle(sourceMeta.url)
-                : `[文件] ${sourceMeta.file_name}`;
-        upsertHistory({
-            task_id: data.task_id,
-            url: sourceMeta.url,
-            title,
-            source_type: sourceMeta.source_type,
-            source_label: sourceMeta.source_label,
-            file_name: sourceMeta.file_name,
-            checklist: cl,
-            status: data.status,
-            progress: data.progress ?? 0,
-            updated_at: Math.floor(Date.now() / 1000),
-        });
+        currentSourceMeta.value = {
+            ...sourceMeta,
+            article_title: resolveBundleTitle(data.result),
+        };
+        upsertHistory(
+            buildHistoryItem(data.task_id, currentSourceMeta.value, data, cl),
+        );
         const p =
             typeof data.progress === "number"
                 ? data.progress
@@ -1847,6 +1880,13 @@ async function doPoll(id) {
             checklistInput.value = data.checklist.join("\n");
         if (typeof data.progress === "number")
             targetProgress.value = data.progress;
+        const articleTitle = resolveBundleTitle(data.result);
+        if (articleTitle && articleTitle !== currentSourceMeta.value.article_title) {
+            currentSourceMeta.value = {
+                ...currentSourceMeta.value,
+                article_title: articleTitle,
+            };
+        }
         const idx = Math.min(
             Math.floor(data.progress / 18),
             funMessages.length - 1,
@@ -1855,23 +1895,15 @@ async function doPoll(id) {
             data.status === "completed"
                 ? `审计完成，发现 ${data.issues?.length || 0} 个问题！`
                 : funMessages[idx];
-        const title =
-            currentSourceMeta.value.source_type === "url"
-                ? deriveTitle(currentSourceMeta.value.url)
-                : `[文件] ${currentSourceMeta.value.file_name}`;
-        upsertHistory({
-            task_id: id,
-            url: currentSourceMeta.value.url,
-            title,
-            source_type: currentSourceMeta.value.source_type,
-            source_label: currentSourceMeta.value.source_label,
-            file_name: currentSourceMeta.value.file_name,
-            checklist: data.checklist || parseChecklist(checklistInput.value),
-            status: data.status,
-            progress: data.progress || 0,
-            issueCount: (data.issues || []).length,
-            updated_at: Math.floor(Date.now() / 1000),
-        });
+        upsertHistory(
+            buildHistoryItem(
+                id,
+                currentSourceMeta.value,
+                data,
+                data.checklist || parseChecklist(checklistInput.value),
+                (data.issues || []).length,
+            ),
+        );
         if (data.status === "completed" || data.status === "failed") {
             targetProgress.value = 100;
             displayProgress.value = 100;
@@ -1902,6 +1934,7 @@ function loadTask(item) {
         source_label: item.source_label || item.url || "",
         url: item.url || "",
         file_name: item.file_name || "",
+                article_title: item.article_title || "",
     };
     inputMode.value = item.source_type === "file" ? "file" : "url";
     urlInput.value = item.url || "";
