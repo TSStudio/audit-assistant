@@ -131,7 +131,7 @@ def merge_llm_vlm_issues(
         "1) 识别语义上重复的问题（即使表达不同）。\n"
         "2) 若重复，保留A对应项，删除B对应项。\n"
         "3) 若不重复，保留。\n"
-        "4) 输出必须是 JSON 对象，形如 {\"issues\":[...]}。\n"
+        '4) 输出必须是 JSON 对象，形如 {"issues":[...]}。\n'
         "5) 每项字段仅使用现有字段（id/type/severity/evidence/recommendation/confidence），不要新增字段。\n"
         "6) 中文输出即可。\n\n"
         f"A_JSON:\n{json.dumps(text_items, ensure_ascii=False)[:45000]}\n\n"
