@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>审核官挑战</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  :root {
+    --font-serif: "Noto Serif SC", "Songti SC", "SimSun", "STSong", Georgia, serif;
+    --font-sans: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", "STHeiti", sans-serif;
+    --ink: #1a1208; --ink2: #3d2e0f; --paper: #f5f0e4; --paper2: #ede6d0;
+    --paper3: #e2d9bc; --red: #b02010; --border: #8a7a50; --stamp-red: #c0281a; --found: #1a6030;
+  }
+  body { background: var(--paper); font-family: var(--font-serif); color: var(--ink); min-height: 100vh; overflow-x: hidden; }
+  .screen { display: none; min-height: 100vh; }
+  .screen.active { display: flex; flex-direction: column; }
+
+  /* INTRO */
+  #intro { align-items: center; justify-content: center; padding: 2rem 1.5rem; text-align: center; background: var(--paper); position: relative; }
+  #intro::before { content:''; position:absolute; top:0;left:0;right:0;bottom:0; background-image:repeating-linear-gradient(0deg,transparent,transparent 28px,rgba(138,122,80,0.08) 28px,rgba(138,122,80,0.08) 29px); pointer-events:none; }
+  .masthead { border-top:3px solid var(--ink); border-bottom:3px solid var(--ink); padding:0.5rem 1rem; margin-bottom:0.3rem; width:100%; max-width:420px; }
+  .masthead-sub { font-family:var(--font-sans); font-size:10px; letter-spacing:4px; color:var(--ink2); margin-bottom:0.3rem; }
+  .masthead h1 { font-size:clamp(28px,8vw,42px); font-weight:700; letter-spacing:6px; line-height:1.1; }
+  .masthead-date { font-family:var(--font-sans); font-size:11px; color:var(--ink2); margin-top:0.3rem; letter-spacing:2px; }
+  .divider-ornament { width:100%; max-width:420px; display:flex; align-items:center; gap:8px; margin:1rem 0; color:var(--border); font-size:14px; }
+  .divider-ornament::before,.divider-ornament::after { content:''; flex:1; height:0.5px; background:var(--border); }
+  .intro-desc { max-width:360px; font-size:13.5px; line-height:2; color:var(--ink2); border:0.5px solid var(--border); padding:1rem; background:var(--paper2); margin-bottom:1.2rem; }
+  .intro-stats { display:flex; gap:1.5rem; margin-bottom:1.2rem; justify-content:center; }
+  .stat-item { text-align:center; border:0.5px solid var(--border); padding:0.5rem 1rem; background:var(--paper2); min-width:80px; }
+  .stat-num { font-size:22px; font-weight:700; color:var(--red); }
+  .stat-label { font-family:var(--font-sans); font-size:10px; color:var(--ink2); letter-spacing:2px; margin-top:2px; }
+  .name-wrap { width:100%; max-width:320px; margin-bottom:1.2rem; position:relative; z-index:1; }
+  .name-label { font-family:var(--font-sans); font-size:11px; letter-spacing:3px; color:var(--ink2); margin-bottom:6px; display:block; }
+  .name-input { width:100%; border:1px solid var(--border); background:var(--paper); font-family:var(--font-serif); font-size:15px; color:var(--ink); padding:10px 14px; outline:none; letter-spacing:2px; text-align:center; transition:border-color 0.2s; }
+  .name-input:focus { border-color:var(--ink); }
+  .name-input::placeholder { color:var(--border); font-size:13px; letter-spacing:1px; }
+  .btn-start { background:var(--ink); color:var(--paper); border:none; font-family:var(--font-serif); font-size:16px; letter-spacing:6px; padding:14px 40px; cursor:pointer; position:relative; z-index:1; }
+  .btn-start:active { background:var(--ink2); }
+
+  /* GAME */
+  #game { padding:0; background:var(--paper); }
+  .game-header { background:var(--ink); color:var(--paper); padding:8px 16px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:100; }
+  .gh-title { font-size:13px; letter-spacing:3px; font-weight:600; max-width:140px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .gh-right { display:flex; align-items:center; gap:12px; }
+  .timer-wrap { display:flex; align-items:center; gap:6px; background:var(--red); padding:4px 10px; }
+  #timer { font-size:18px; font-weight:700; font-family:var(--font-sans); min-width:36px; letter-spacing:1px; }
+  .gh-score { font-family:var(--font-sans); font-size:13px; }
+  .progress-bar { height:3px; background:var(--paper3); }
+  #progress-fill { height:100%; background:var(--red); transition:width 1s linear; width:100%; }
+  .article-container { padding:1rem; max-width:600px; margin:0 auto; }
+  .article-headline-row { border-top:2.5px solid var(--ink); border-bottom:1px solid var(--ink); padding:6px 0; margin-bottom:0.8rem; display:flex; flex-direction:column; align-items:center; text-align:center; }
+  .article-kicker { font-family:var(--font-sans); font-size:10px; letter-spacing:3px; color:var(--red); margin-bottom:4px; font-weight:500; }
+  .article-title { font-size:clamp(18px,5vw,26px); font-weight:700; line-height:1.3; letter-spacing:2px; }
+  .article-subtitle { font-family:var(--font-sans); font-size:12px; color:var(--ink2); margin-top:4px; letter-spacing:1px; }
+  .article-byline { font-family:var(--font-sans); font-size:10px; color:var(--border); letter-spacing:2px; border-top:0.5px solid var(--border); padding-top:4px; margin-top:4px; }
+  .article-body { display:grid; grid-template-columns:1fr 1fr; gap:0; border-top:0.5px solid var(--border); }
+  .article-col { padding:0.6rem; font-size:13px; line-height:1.9; text-align:justify; }
+  .article-col:not(:last-child) { border-right:0.5px solid var(--border); }
+  .article-col-title { font-weight:700; font-size:12px; letter-spacing:2px; margin-bottom:0.4rem; border-bottom:0.5px solid var(--border); padding-bottom:3px; }
+  .error-span { position:relative; cursor:pointer; border-bottom:1.5px solid transparent; transition:background 0.15s; border-radius:2px; padding:0 1px; }
+  .error-span.found { background:rgba(26,96,48,0.12); border-bottom-color:var(--found); }
+  .error-span.found::after { content:'✓'; position:absolute; top:-14px; left:50%; transform:translateX(-50%); font-size:10px; color:var(--found); pointer-events:none; animation:popIn 0.2s ease; }
+  .wrong-tap { position:fixed; pointer-events:none; width:44px; height:44px; border:2px solid var(--red); border-radius:50%; transform:translate(-50%,-50%); animation:wrongRing 0.4s ease-out forwards; z-index:999; }
+  @keyframes wrongRing { 0%{opacity:1;transform:translate(-50%,-50%) scale(0.5)} 100%{opacity:0;transform:translate(-50%,-50%) scale(1.5)} }
+  @keyframes popIn { 0%{opacity:0;transform:translateX(-50%) scale(0.5)} 100%{opacity:1;transform:translateX(-50%) scale(1)} }
+  @keyframes penaltyFloat { 0%{opacity:1;transform:translate(-50%,-100%)} 100%{opacity:0;transform:translate(-50%,-220%)} }
+  @keyframes foundRing { 0%{opacity:1;transform:translate(-50%,-50%) scale(0.3)} 100%{opacity:0;transform:translate(-50%,-50%) scale(1.6)} }
+  .article-img-block { grid-column:1/-1; border-top:0.5px solid var(--border); border-bottom:0.5px solid var(--border); padding:0.5rem; display:flex; gap:0.5rem; align-items:flex-start; }
+  .fake-img { width:90px; min-width:90px; height:70px; background:var(--paper3); border:0.5px solid var(--border); display:flex; align-items:center; justify-content:center; font-size:10px; color:var(--border); font-family:var(--font-sans); letter-spacing:1px; flex-direction:column; gap:4px; }
+  .fake-img svg { width:24px; height:24px; opacity:0.5; }
+  .img-caption { font-size:11px; line-height:1.7; color:var(--ink2); font-family:var(--font-sans); }
+  .hint-bar { font-family:var(--font-sans); font-size:11px; text-align:center; padding:6px; background:var(--paper2); border-top:0.5px solid var(--border); color:var(--ink2); letter-spacing:1px; position:sticky; bottom:0; }
+  .found-ripple { position:fixed; pointer-events:none; width:60px; height:60px; border-radius:50%; border:2px solid var(--found); transform:translate(-50%,-50%); animation:foundRing 0.5s ease-out forwards; z-index:999; }
+
+  /* RESULT */
+  #result { padding:0; background:var(--paper); align-items:center; }
+  .result-header { width:100%; background:var(--ink); color:var(--paper); text-align:center; padding:1.2rem 1rem 1rem; }
+  .result-stamp { display:inline-block; border:3px solid var(--stamp-red); color:var(--stamp-red); font-size:20px; font-weight:700; letter-spacing:6px; padding:6px 16px; transform:rotate(-4deg); margin-bottom:0.8rem; }
+  .result-score-big { font-size:52px; font-weight:700; color:var(--paper); line-height:1; }
+  .result-score-label { font-family:var(--font-sans); font-size:11px; letter-spacing:4px; color:rgba(245,240,228,0.6); margin-top:4px; }
+  .result-body { width:100%; max-width:480px; padding:1.2rem 1rem; display:flex; flex-direction:column; gap:1rem; align-items:center; }
+  .result-row { display:flex; width:100%; gap:10px; }
+  .result-card { flex:1; background:var(--paper2); border:0.5px solid var(--border); padding:0.8rem; text-align:center; }
+  .rc-num { font-size:24px; font-weight:700; color:var(--red); }
+  .rc-label { font-family:var(--font-sans); font-size:10px; letter-spacing:2px; color:var(--ink2); margin-top:2px; }
+  .board-title { font-size:13px; letter-spacing:4px; font-weight:700; border-bottom:1.5px solid var(--ink); padding-bottom:6px; margin-bottom:6px; width:100%; }
+  .board-list { width:100%; border:0.5px solid var(--border); background:var(--paper2); }
+  .board-item { display:flex; align-items:center; padding:8px 12px; gap:10px; border-bottom:0.5px solid var(--paper3); font-family:var(--font-sans); font-size:13px; }
+  .board-item:last-child { border-bottom:none; }
+  .board-item.me { background:rgba(176,32,16,0.06); font-weight:700; color:var(--red); }
+  .board-rank { font-size:12px; font-weight:700; color:var(--ink2); min-width:20px; text-align:center; }
+  .board-item:nth-child(1) .board-rank { color:#8a6a10; }
+  .board-item:nth-child(2) .board-rank { color:#606060; }
+  .board-item:nth-child(3) .board-rank { color:#7a4a20; }
+  .board-name { flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:160px; }
+  .board-score { font-weight:700; }
+  .board-badge { font-size:10px; color:var(--paper); background:var(--red); padding:2px 6px; letter-spacing:1px; flex-shrink:0; }
+  .board-date { font-size:10px; color:var(--border); flex-shrink:0; }
+  .ai-section { width:100%; background:var(--paper2); border:1px solid var(--border); padding:0.8rem; }
+  .ai-section-title { font-size:12px; letter-spacing:3px; font-weight:700; border-bottom:0.5px solid var(--border); padding-bottom:6px; margin-bottom:8px; }
+  .ai-error-list { display:flex; flex-direction:column; gap:6px; }
+  .ai-error-item { display:flex; align-items:flex-start; gap:8px; font-family:var(--font-sans); font-size:12px; line-height:1.6; }
+  .ai-dot { min-width:6px; height:6px; border-radius:50%; background:var(--red); margin-top:5px; }
+  .ai-dot.found-dot { background:var(--found); }
+  .cta-wrap { width:100%; padding:0.5rem 0; }
+  .btn-cta { width:100%; background:var(--red); color:#fff; border:none; font-family:var(--font-serif); font-size:16px; font-weight:700; letter-spacing:4px; padding:16px; cursor:pointer; position:relative; overflow:hidden; display:flex; align-items:center; justify-content:center; gap:10px; }
+  .btn-cta::before { content:''; position:absolute; top:0; left:-100%; width:60px; height:100%; background:rgba(255,255,255,0.15); transform:skewX(-20deg); animation:shimmer 2.5s infinite; }
+  @keyframes shimmer { 0%{left:-100%} 60%,100%{left:130%} }
+  .btn-cta:active { background:#8a1808; }
+  .btn-retry { width:100%; background:transparent; color:var(--ink); border:1px solid var(--border); font-family:var(--font-serif); font-size:13px; letter-spacing:3px; padding:10px; cursor:pointer; margin-top:6px; }
+  .btn-retry:active { background:var(--paper2); }
+  .footer-note { font-family:var(--font-sans); font-size:10px; color:var(--border); letter-spacing:2px; padding-bottom:2rem; }
+</style>
+</head>
+<body>
+
+<!-- INTRO -->
+<div class="screen active" id="intro">
+  <div class="masthead">
+    <div class="masthead-sub">— 每日智能审核挑战 —</div>
+    <h1>寻错启示录</h1>
+    <div class="masthead-date" id="intro-date">VOL. 2026 · 试炼版</div>
+  </div>
+  <div class="divider-ornament">❧</div>
+  <div class="intro-desc">
+    本期文稿为复旦大学一百二十周年校庆报道，疑含若干错误。需要您担任<strong>资深审核官</strong>，于限定时间内点击圈出所有错误，结束后与 AI 审核结果对照。
+  </div>
+  <div class="intro-stats">
+    <div class="stat-item"><div class="stat-num">8</div><div class="stat-label">处错误</div></div>
+    <div class="stat-item"><div class="stat-num">120</div><div class="stat-label">秒限时</div></div>
+    <div class="stat-item"><div class="stat-num">+15</div><div class="stat-label">每处得分</div></div>
+  </div>
+  <div class="name-wrap">
+    <span class="name-label">· 请输入您的审核官名称 ·</span>
+    <input class="name-input" id="player-name" type="text" maxlength="10" placeholder="最多10字" />
+  </div>
+  <button class="btn-start" onclick="startGame()">开始审核</button>
+  <div class="divider-ornament" style="margin-top:1.5rem;">✦</div>
+  <div style="font-family:var(--font-sans);font-size:10px;color:var(--border);letter-spacing:2px;">
+    轻触错误内容圈出 · 误点扣 15 秒 · 共 8 处
+  </div>
+</div>
+
+<!-- GAME -->
+<div class="screen" id="game">
+  <div class="game-header">
+    <span class="gh-title" id="game-player-name">审核进行中</span>
+    <div class="gh-right">
+      <span class="gh-score">得分: <strong id="score-display">0</strong></span>
+      <div class="timer-wrap">
+        <span style="font-size:12px">⏱</span>
+        <span id="timer">120</span>
+      </div>
+    </div>
+  </div>
+  <div class="progress-bar"><div id="progress-fill"></div></div>
+  <div class="article-container" id="article"></div>
+  <div class="hint-bar">轻触错误内容圈出 · 已找到 <span id="found-count">0</span>/8 · 误点扣 15 秒</div>
+</div>
+
+<!-- RESULT -->
+<div class="screen" id="result">
+  <div class="result-header">
+    <div class="result-stamp" id="stamp-text">审核完毕</div>
+    <div class="result-score-big" id="final-score">0</div>
+    <div class="result-score-label">AUDIT SCORE</div>
+  </div>
+  <div class="result-body">
+    <div class="result-row">
+      <div class="result-card"><div class="rc-num" id="found-num">0</div><div class="rc-label">找到错误</div></div>
+      <div class="result-card"><div class="rc-num" id="miss-num">0</div><div class="rc-label">遗漏错误</div></div>
+      <div class="result-card"><div class="rc-num" id="time-num">0s</div><div class="rc-label">用时</div></div>
+    </div>
+    <div class="board-title">· 审核榜 · 本机记录</div>
+    <div class="board-list" id="board-list"></div>
+    <div class="ai-section">
+      <div class="ai-section-title">AI 审核报告</div>
+      <div class="ai-error-list" id="ai-error-list"></div>
+    </div>
+    <div class="cta-wrap">
+      <button class="btn-cta" onclick="goToPlatform()">
+        <span>立即试用 AI 审核平台</span>
+        <span style="font-size:18px">→</span>
+      </button>
+      <div style="font-family:var(--font-sans);font-size:10px;color:var(--border);text-align:center;margin-top:6px;letter-spacing:2px;">
+        AI 每秒可审核数千字 · 准确率远超人工
+      </div>
+      <button class="btn-retry" onclick="retryGame()">再审一次</button>
+    </div>
+    <div class="footer-note">— 本期挑战已结束 · 感谢参与 —</div>
+  </div>
+</div>
+
+<script>
+/*
+  8处错误完整清单（已校对）：
+  e1 — "华延"  → 华诞（错别字）
+  e2 — "教训"  → 校训（错别字）
+  e3 — "星期三" → 星期二（2025-05-27实为周二，事实错误）
+  e4 — "博学而笃志,切问而近思" → 半角逗号应为全角（标点错误）
+  e5 — "吴政报告厅" → 吴文政报告厅（事实错误）
+  e6 — "台湾分校" → 复旦无此机构（事实错误）
+  e7 — "9月24日" → 前文均为5月，日期矛盾（逻辑错误）
+  e8 — "培养了大批优秀人才和贡献" → 并列搭配不当（语病）
+*/
+
+const ERRORS = [
+  { id:'e1', wrong:'华延',            correct:'华诞',         type:'"延"应为"诞"，同音别字',                        category:'错别字' },
+  { id:'e2', wrong:'教训',            correct:'校训',         type:'"教训"应为"校训"',                              category:'错别字' },
+  { id:'e3', wrong:'星期三',          correct:'星期二',       type:'2025年5月27日实为星期二，非星期三',              category:'事实错误' },
+  { id:'e4', wrong:'博学而笃志,切问而近思', correct:'博学而笃志，切问而近思', type:'逗号使用了英文半角","，应为中文全角"，"', category:'标点错误' },
+  { id:'e5', wrong:'吴政报告厅',      correct:'吴文政报告厅', type:'缺少"文"字，场馆名称有误',                      category:'事实错误' },
+  { id:'e6', wrong:'台湾分校',        correct:'复旦大学无"台湾分校"', type:'虚构机构，复旦大学在台湾没有分校',      category:'事实错误' },
+  { id:'e7', wrong:'9月24日',         correct:'5月下旬',      type:'全文时间线为5月，此处出现9月，日期前后矛盾',    category:'逻辑错误' },
+  { id:'e8', wrong:'培养了大批优秀人才和贡献', correct:'培养了大批优秀人才，作出了重要贡献', type:'"人才"与"贡献"并列搭配不当', category:'语病' },
+];
+
+/*
+  文章正文（保留原文措辞，仅将8处错误用占位span标记）
+  注意：
+  - e4的可点击文本包含半角逗号，确保渲染时原样显示
+  - e7位于"文脉之韵"段落开头
+  - 其余错误均在正文自然位置
+*/
+const ARTICLE_HTML = `
+<div class="article-headline-row">
+  <div class="article-kicker">校庆特刊 · 综合报道</div>
+  <div class="article-title">百廿传承绽芳华<br>复旦大学一百二十周年校庆系列活动圆满落幕</div>
+  <div class="article-subtitle">2025年5月27日 · 复旦大学新闻中心</div>
+  <div class="article-byline">本报记者 综合报道 · 责任编辑 校庆宣传组</div>
+</div>
+<div class="article-body">
+
+  <div class="article-col" style="grid-column:1/-1;border-right:none;">
+    <p>2025年5月27日（<span id="e3-wrap"></span>），复旦大学迎来了建校一百二十周年的<span id="e1-wrap"></span>。自1905年马相伯先生怀着教育救国理想，创办复旦公学起，这所百年学府始终禀承"<span id="e4-wrap"></span>"的<span id="e2-wrap"></span>，与国家同呼吸、共命运，<span id="e8-wrap"></span>。</p>
+    <p>校庆以"百廿传承，时代新章"为主题，系列活动自5月26日持续至5月30日，通过举办包括高端论坛、文化展览、校友返校在内的数十场活动，吸引了全球复旦人的热情参与和关注。</p>
+  </div>
+
+  <div class="article-img-block">
+    <div class="fake-img">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+      <span>图片</span>
+    </div>
+    <div class="img-caption">图：校庆主论坛在光华楼<span id="e5-wrap"></span>隆重举行，海内外学者云集，共话复旦百廿历程。（校庆宣传组供图）</div>
+  </div>
+
+  <div class="article-col">
+    <div class="article-col-title">学术之光</div>
+    <p>5月26日上午，校庆主论坛在光华楼吴文政报告厅举行。论坛邀请了包括多位诺贝尔奖得主、两院院士在内的海内外知名学者，围绕"科技变革与文明未来"主题展开了深入探讨，通过回顾百廿历程和展望未来蓝图，让与会者深感复旦精神的传承与发展。</p>
+    <p>特别值得关注的是，<span id="e6-wrap"></span>校长率团参会并在分论坛发言，分享了该校在通识教育领域的成果。</p>
+  </div>
+
+  <div class="article-col">
+    <div class="article-col-title">文脉之韵</div>
+    <p><span id="e7-wrap"></span>晚，"光华诗韵"大型文艺晚会在正大体育馆华彩上演。晚会融合了交响乐、舞蹈、校史话剧等多元艺术形式，生动演绎了复旦一百二十年来的历史画卷与精神追求。</p>
+    <p>校史档案馆特辟的"百廿足迹"专题展览通过大量珍贵实物、档案与影像资料，系统梳理了学校自创立以来的发展节点，其中部分档案为首次公开展出。</p>
+  </div>
+
+  <div class="article-col" style="grid-column:1/-1;border-right:none;">
+    <div class="article-col-title">情谊之链</div>
+    <p>校友是学校的宝贵财富。本次校庆特设"校友日"活动，来自世界各地的校友重返校园，在熟悉的相辉堂前、燕园湖畔追忆青春岁月，并与在校师生座谈，分享人生感悟与行业洞察。校庆期间还举行了雕塑揭幕仪式，体现了校友对母校的深厚感情。</p>
+    <p>复旦大学一百二十周年校庆系列活动的成功举办，不仅是对过往辉煌历程的深情致敬，更是迈向未来新征程的豪迈启航。站在新的历史起点上，复旦大学将继续坚持正确政治方向，服务国家战略需求，为中华民族的伟大复兴和人类社会的进步作出新的贡献。</p>
+  </div>
+
+</div>`;
+
+const STORAGE_KEY = 'audit_game_leaderboard';
+let timer, timeLeft = 120, score = 0, foundCount = 0;
+const foundErrors = new Set();
+let playerName = '匿名审核官';
+
+function loadBoard() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); }
+  catch { return []; }
+}
+function saveBoard(entries) {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(entries)); }
+  catch(e) { console.error('存储失败', e); }
+}
+
+function startGame() {
+  const input = document.getElementById('player-name').value.trim();
+  playerName = input || '匿名审核官';
+  document.getElementById('game-player-name').textContent = playerName;
+  show('game');
+  document.getElementById('article').innerHTML = ARTICLE_HTML;
+  ERRORS.forEach(e => {
+    const wrap = document.getElementById(e.id + '-wrap');
+    if (!wrap) return;
+    const span = document.createElement('span');
+    span.className = 'error-span';
+    span.id = e.id;
+    span.textContent = e.wrong;
+    span.addEventListener('click', ev => tapError(ev, e.id));
+    wrap.appendChild(span);
+  });
+  document.getElementById('article').addEventListener('click', handleArticleTap);
+  timeLeft = 120; score = 0; foundCount = 0; foundErrors.clear();
+  updateDisplay();
+  timer = setInterval(tick, 1000);
+}
+
+function handleArticleTap(ev) {
+  if (ev.target.classList.contains('error-span')) return;
+  const x = ev.clientX, y = ev.clientY;
+  const ring = document.createElement('div');
+  ring.className = 'wrong-tap';
+  ring.style.left = x + 'px'; ring.style.top = y + 'px';
+  document.body.appendChild(ring);
+  setTimeout(() => ring.remove(), 500);
+  timeLeft = Math.max(0, timeLeft - 15);
+  showPenalty(x, y);
+  updateDisplay();
+  if (timeLeft <= 0) endGame();
+}
+
+function showPenalty(x, y) {
+  const el = document.createElement('div');
+  el.textContent = '-15s';
+  el.style.cssText = `position:fixed;left:${x}px;top:${y-10}px;transform:translate(-50%,-100%);color:#b02010;font-family:var(--font-serif);font-size:15px;font-weight:700;pointer-events:none;z-index:9999;animation:penaltyFloat 0.9s ease-out forwards;`;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 900);
+}
+
+function tapError(ev, id) {
+  ev.stopPropagation();
+  if (foundErrors.has(id)) return;
+  foundErrors.add(id);
+  foundCount++;
+  score += 15;
+  const span = document.getElementById(id);
+  if (span) span.classList.add('found');
+  const x = ev.clientX, y = ev.clientY;
+  const el = document.createElement('div');
+  el.className = 'found-ripple';
+  el.style.left = x + 'px'; el.style.top = y + 'px';
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 600);
+  updateDisplay();
+  if (foundCount >= ERRORS.length) endGame();
+}
+
+function tick() {
+  timeLeft--;
+  updateDisplay();
+  if (timeLeft <= 0) endGame();
+}
+
+function updateDisplay() {
+  document.getElementById('timer').textContent = timeLeft;
+  document.getElementById('score-display').textContent = score;
+  document.getElementById('found-count').textContent = foundCount;
+  document.getElementById('progress-fill').style.width = (timeLeft / 120 * 100) + '%';
+  document.getElementById('timer').style.color = timeLeft <= 20 ? '#ff6040' : '';
+}
+
+function endGame() {
+  clearInterval(timer);
+  const elapsed = 120 - timeLeft;
+  if (foundCount === ERRORS.length && timeLeft > 0) score += Math.floor(timeLeft / 2);
+  document.getElementById('final-score').textContent = score;
+  document.getElementById('found-num').textContent = foundCount;
+  document.getElementById('miss-num').textContent = ERRORS.length - foundCount;
+  document.getElementById('time-num').textContent = elapsed + 's';
+  const stamps = ['全员审查','优秀审核','合格审核','继续努力'];
+  document.getElementById('stamp-text').textContent = stamps[foundCount >= 8 ? 0 : foundCount >= 6 ? 1 : foundCount >= 3 ? 2 : 3];
+  document.getElementById('ai-error-list').innerHTML = ERRORS.map(e => `
+    <div class="ai-error-item">
+      <div class="ai-dot ${foundErrors.has(e.id) ? 'found-dot' : ''}"></div>
+      <div><strong style="color:var(--ink)">[${e.category}]</strong> 「${e.wrong}」→ ${e.type}
+        ${foundErrors.has(e.id) ? '<span style="color:var(--found);font-size:11px;"> ✓ 已找到</span>' : '<span style="color:var(--red);font-size:11px;"> 遗漏</span>'}
+      </div>
+    </div>`).join('');
+  show('result');
+  saveAndRenderBoard();
+}
+
+function saveAndRenderBoard() {
+  let entries = loadBoard();
+  const now = new Date();
+  const myTs = Date.now();
+  entries.push({ name: playerName, score, date: `${now.getMonth()+1}/${now.getDate()}`, ts: myTs });
+  entries.sort((a, b) => b.score - a.score || b.ts - a.ts);
+  if (entries.length > 20) entries = entries.slice(0, 20);
+  saveBoard(entries);
+  const myRankIdx = entries.findIndex(e => e.ts === myTs);
+  document.getElementById('board-list').innerHTML = entries.slice(0, 10).map((item, i) => {
+    const isMe = item.ts === myTs;
+    return `<div class="board-item ${isMe ? 'me' : ''}">
+      <span class="board-rank">${i+1}</span>
+      <span class="board-name">${item.name}</span>
+      <span class="board-score">${item.score}</span>
+      <span class="board-date">${item.date}</span>
+      ${isMe ? '<span class="board-badge">我</span>' : ''}
+    </div>`;
+  }).join('') + (myRankIdx >= 10 ? `<div class="board-item me">
+    <span class="board-rank">${myRankIdx+1}</span>
+    <span class="board-name">${playerName}</span>
+    <span class="board-score">${score}</span>
+    <span class="board-date">${entries[myRankIdx].date}</span>
+    <span class="board-badge">我</span>
+  </div>` : '');
+}
+
+function goToPlatform() {
+  window.open('https://your-platform-url.com', '_blank');
+}
+function retryGame() {
+  clearInterval(timer);
+  show('intro');
+}
+function show(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+const d = new Date();
+document.getElementById('intro-date').textContent = `VOL.${d.getFullYear()} · 第${String(d.getMonth()+1).padStart(2,'0')}期`;
+</script>
+</body>
+</html>
