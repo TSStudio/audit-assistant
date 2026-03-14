@@ -26,6 +26,7 @@ def start_audit(
     checklist: Optional[List[str]] = None,
     *,
     user_token: str,
+    fast_mode: bool = False,
     source_mode: str = "url",
     upload_filename: Optional[str] = None,
     upload_content: Optional[bytes] = None,
@@ -46,6 +47,7 @@ def start_audit(
             str(source_label),
             record.get("checklist") or [],
             source_mode,
+            fast_mode,
             upload_filename,
             upload_content,
             reference_docs or [],
@@ -72,6 +74,7 @@ def _run_pipeline(
     source_label: str,
     checklist: Optional[List[str]] = None,
     source_mode: str = "url",
+    fast_mode: bool = False,
     upload_filename: Optional[str] = None,
     upload_content: Optional[bytes] = None,
     reference_docs: Optional[List[dict]] = None,
@@ -84,6 +87,7 @@ def _run_pipeline(
             source_label,
             checklist=checklist or [],
             source_mode=source_mode,
+            fast_mode=fast_mode,
             upload_filename=upload_filename,
             upload_content=upload_content,
             reference_docs=reference_docs or [],
@@ -236,6 +240,7 @@ def run_pipeline(
     source_label: str,
     checklist: Optional[List[str]] = None,
     source_mode: str = "url",
+    fast_mode: bool = False,
     upload_filename: Optional[str] = None,
     upload_content: Optional[bytes] = None,
     reference_docs: Optional[List[dict]] = None,
@@ -284,6 +289,7 @@ def run_pipeline(
         bundle,
         checklist=checklist or [],
         reference_context=rag_context,
+        enable_thinking=not fast_mode,
     )
 
     # Attach bounding boxes from captured text blocks so the frontend can render directly.
@@ -298,10 +304,15 @@ def run_pipeline(
             bundle,
             checklist=checklist or [],
             reference_context=rag_context,
+            enable_thinking=not fast_mode,
         )
 
     _update_progress(task_id, 92, "Merging LLM and multimodal issues")
-    issues = merge_llm_vlm_issues(issues_text, issues_mm)
+    issues = merge_llm_vlm_issues(
+        issues_text,
+        issues_mm,
+        enable_thinking=False,
+    )
     try:
         print(
             f"[pipeline] issues_text={len(issues_text)}, issues_mm={len(issues_mm)}, total={len(issues)}"

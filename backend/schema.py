@@ -114,6 +114,7 @@ class ArticleBundle(BaseModel):
 class AuditRequest(BaseModel):
     url: HttpUrl
     checklist: List[str] = Field(default_factory=list)
+    fast_mode: bool = False
 
 
 class AuditStartResponse(BaseModel):

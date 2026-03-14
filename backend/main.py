@@ -79,6 +79,13 @@ def _parse_form_id_list(raw: str) -> List[str]:
     return list(dict.fromkeys(ids))
 
 
+def _parse_form_bool(raw: str, default: bool = False) -> bool:
+    value = str(raw or "").strip().lower()
+    if not value:
+        return default
+    return value in {"1", "true", "yes", "on", "y", "t"}
+
+
 def _collect_reference_docs_from_selected_kbs(
     user_token: str,
     selected_reference_ids: List[str],
@@ -137,6 +144,7 @@ def create_audit(request: AuditRequest, req: Request):
     return start_audit(
         str(request.url),
         checklist=request.checklist,
+        fast_mode=request.fast_mode,
         source_mode="url",
         user_token=user_token,
     )
@@ -194,6 +202,7 @@ async def create_audit_upload(
     reference_files: List[UploadFile] = File(default=[]),
     selected_checklist_ids: str = Form(default="[]"),
     selected_reference_ids: str = Form(default="[]"),
+    fast_mode: str = Form(default="false"),
 ):
     user_token = _coerce_user_token(request)
     try:
@@ -221,6 +230,7 @@ async def create_audit_upload(
     return start_audit(
         label,
         checklist=final_checklist,
+        fast_mode=_parse_form_bool(fast_mode, default=False),
         source_mode="upload",
         upload_filename=filename,
         upload_content=content,
@@ -238,6 +248,7 @@ async def create_audit_url(
     reference_files: List[UploadFile] = File(default=[]),
     selected_checklist_ids: str = Form(default="[]"),
     selected_reference_ids: str = Form(default="[]"),
+    fast_mode: str = Form(default="false"),
 ):
     user_token = _coerce_user_token(request)
     raw_url = (url or "").strip()
@@ -262,6 +273,7 @@ async def create_audit_url(
     return start_audit(
         raw_url,
         checklist=final_checklist,
+        fast_mode=_parse_form_bool(fast_mode, default=False),
         source_mode="url",
         reference_docs=reference_docs,
         reference_kb_ids=selected_reference_id_list,

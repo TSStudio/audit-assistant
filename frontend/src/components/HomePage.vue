@@ -135,6 +135,28 @@
                                 </button>
                             </div>
 
+                            <label class="f-label" style="margin-top: 12px"
+                                >审计模式</label
+                            >
+                            <div class="mode-row" style="margin-top: 8px">
+                                <button
+                                    class="mode-pill"
+                                    :class="{ on: auditSpeed === 'fast' }"
+                                    :disabled="loading"
+                                    @click="auditSpeed = 'fast'"
+                                >
+                                    Fast Mode（关闭 Thinking）
+                                </button>
+                                <button
+                                    class="mode-pill"
+                                    :class="{ on: auditSpeed === 'slow' }"
+                                    :disabled="loading"
+                                    @click="auditSpeed = 'slow'"
+                                >
+                                    Slow Mode（开启 Thinking）
+                                </button>
+                            </div>
+
                             <template v-if="inputMode === 'url'">
                                 <label class="f-label">页面链接</label>
                                 <div class="inp-row">
@@ -1101,6 +1123,7 @@ function apiFetch(path, options = {}) {
 const tab = ref("submit");
 const showMotivation = ref(true);
 const inputMode = ref("url");
+const auditSpeed = ref("slow");
 const urlInput = ref("");
 const selectedFile = ref(null);
 const fileInputRef = ref(null);
@@ -1736,6 +1759,7 @@ async function startAudit() {
             const fd = new FormData();
             fd.append("url", urlInput.value.trim());
             fd.append("checklist", JSON.stringify(cl));
+            fd.append("fast_mode", String(auditSpeed.value === "fast"));
             fd.append(
                 "selected_checklist_ids",
                 JSON.stringify(selectedChecklistIds),
@@ -1749,6 +1773,7 @@ async function startAudit() {
             const fd = new FormData();
             fd.append("file", selectedFile.value);
             fd.append("checklist", JSON.stringify(cl));
+            fd.append("fast_mode", String(auditSpeed.value === "fast"));
             fd.append(
                 "selected_checklist_ids",
                 JSON.stringify(selectedChecklistIds),
