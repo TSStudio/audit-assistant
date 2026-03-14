@@ -1,9 +1,5 @@
 <template>
     <div class="app-shell">
-        <header class="topbar">
-            <h1>Audit Assistant</h1>
-            <p class="subtitle">输入 URL，启动审计，查看问题列表</p>
-        </header>
         <main class="content">
             <router-view v-slot="{ Component }">
                 <transition name="fade" mode="out-in">
@@ -65,7 +61,7 @@ onMounted(() => {
 }
 
 .content {
-    padding: 12px 6vw 48px;
+    padding: 0;
 }
 
 .fade-enter-active,
