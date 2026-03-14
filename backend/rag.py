@@ -1,10 +1,13 @@
-"""RAG utilities backed by persistent ChromaDB collections."""
+"""Lightweight RAG utilities backed by ChromaDB.
+
+This module builds transient in-memory collections per request from supplementary
+reference documents, and retrieves top-k chunks relevant to the current audit.
+"""
 
 from __future__ import annotations
 
+import hashlib
 import os
-import re
-from pathlib import Path
 from typing import List, Sequence
 from uuid import uuid4
 
@@ -13,7 +16,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-CHROMA_DIR = Path(__file__).resolve().parent / "chroma_store"
+CHROMA_DIR = os.path.join(os.path.dirname(__file__), "chroma_store")
 
 
 def _build_embedding_function():
@@ -45,33 +48,6 @@ def _build_embedding_function():
         return DefaultEmbeddingFunction()
 
 
-def _get_persistent_client():
-    import chromadb
-    from chromadb.config import Settings
-
-    CHROMA_DIR.mkdir(parents=True, exist_ok=True)
-    try:
-        return chromadb.PersistentClient(
-            path=str(CHROMA_DIR),
-            settings=Settings(anonymized_telemetry=False),
-        )
-    except Exception:
-        return chromadb.Client(
-            Settings(
-                anonymized_telemetry=False,
-                is_persistent=True,
-                persist_directory=str(CHROMA_DIR),
-            )
-        )
-
-
-def make_reference_collection_name(reference_id: str) -> str:
-    cleaned = re.sub(r"[^a-zA-Z0-9_-]", "", str(reference_id or "")).lower()
-    if not cleaned:
-        cleaned = uuid4().hex
-    return f"audit_ref_{cleaned[:48]}"
-
-
 def _chunk_text(text: str, chunk_size: int = 500, overlap: int = 80) -> List[str]:
     cleaned = (text or "").replace("\r", "\n")
     cleaned = "\n".join([line.strip() for line in cleaned.split("\n") if line.strip()])
@@ -87,49 +63,83 @@ def _chunk_text(text: str, chunk_size: int = 500, overlap: int = 80) -> List[str
     return chunks
 
 
-def index_reference_document(collection_name: str, doc_name: str, text: str) -> None:
-    """Persist a single reference document into a dedicated Chroma collection."""
+def _safe_token_seed(raw: str) -> str:
+    return hashlib.sha1((raw or "anon").encode("utf-8")).hexdigest()[:12]
 
-    body = str(text or "").strip()
-    if not body:
-        return
 
-    chunks = _chunk_text(body)
-    if not chunks:
-        return
+def _user_collection_name(user_token: str) -> str:
+    return f"kb-u-{_safe_token_seed(user_token)}"
 
+
+def _build_persistent_client():
     import chromadb
+    from chromadb.config import Settings
 
-    client = _get_persistent_client()
+    os.makedirs(CHROMA_DIR, exist_ok=True)
+    return chromadb.PersistentClient(
+        path=CHROMA_DIR,
+        settings=Settings(anonymized_telemetry=False),
+    )
+
+
+def index_reference_documents(
+    user_token: str,
+    kb_id: str,
+    docs: Sequence[dict],
+) -> None:
+    """Persist reference chunks into a user-scoped Chroma collection."""
+
+    if not user_token or not kb_id:
+        return
+
+    docs_input = [doc for doc in docs if isinstance(doc, dict)]
+    if not docs_input:
+        return
+
+    client = _build_persistent_client()
     embedding_function = _build_embedding_function()
-
     collection = client.get_or_create_collection(
-        name=collection_name,
+        name=_user_collection_name(user_token),
         embedding_function=embedding_function,
-        metadata={"hnsw:space": "cosine", "doc_name": doc_name},
+        metadata={"hnsw:space": "cosine"},
     )
 
     try:
-        # Keep replacement semantics by clearing old chunks before re-index.
-        collection.delete(where={"doc_name": doc_name})
+        collection.delete(where={"kb_id": kb_id})
     except Exception:
         pass
 
     ids: List[str] = []
-    docs: List[str] = []
+    chunks: List[str] = []
     metas: List[dict] = []
-    for idx, chunk in enumerate(chunks):
-        ids.append(f"{collection_name}-{idx}")
-        docs.append(chunk)
-        metas.append({"source": doc_name, "doc_name": doc_name})
+    idx = 0
+    for doc in docs_input:
+        source = str(doc.get("name") or "reference")
+        text = str(doc.get("text") or "").strip()
+        for chunk in _chunk_text(text):
+            if not chunk.strip():
+                continue
+            ids.append(f"{kb_id}-{idx}")
+            chunks.append(chunk)
+            metas.append({"kb_id": kb_id, "source": source})
+            idx += 1
 
-    collection.add(ids=ids, documents=docs, metadatas=metas)
+    if not chunks:
+        return
+    collection.add(ids=ids, documents=chunks, metadatas=metas)
 
 
-def delete_reference_collection(collection_name: str) -> None:
+def delete_reference_documents(user_token: str, kb_id: str) -> None:
+    if not user_token or not kb_id:
+        return
     try:
-        client = _get_persistent_client()
-        client.delete_collection(collection_name)
+        client = _build_persistent_client()
+        embedding_function = _build_embedding_function()
+        collection = client.get_collection(
+            name=_user_collection_name(user_token),
+            embedding_function=embedding_function,
+        )
+        collection.delete(where={"kb_id": kb_id})
     except Exception:
         pass
 
@@ -148,94 +158,62 @@ def _fallback_reference_context(
     return merged[:max_chars] if merged else ""
 
 
-def _retrieve_from_persistent_collections(
-    selected_references: Sequence[dict],
-    query_text: str,
-    *,
-    top_k: int,
-    max_chars: int,
-) -> str:
-    valid_refs = [r for r in selected_references if r.get("collection_name")]
-    if not valid_refs:
-        return ""
-
-    client = _get_persistent_client()
-    embedding_function = _build_embedding_function()
-    query = (query_text or "").strip() or "审校人名 身份 组织 时间 事实一致性"
-
-    scored_chunks: List[tuple[float, str, str]] = []
-    each_k = max(1, min(4, top_k))
-
-    for ref in valid_refs:
-        cname = str(ref.get("collection_name") or "").strip()
-        if not cname:
-            continue
-        try:
-            col = client.get_collection(
-                name=cname, embedding_function=embedding_function
-            )
-            result = col.query(query_texts=[query], n_results=each_k)
-        except Exception:
-            continue
-
-        docs = (result.get("documents") or [[]])[0]
-        metas = (result.get("metadatas") or [[]])[0]
-        dists = (result.get("distances") or [[]])[0]
-        for idx, chunk in enumerate(docs):
-            if not str(chunk or "").strip():
-                continue
-            source = str(ref.get("name") or "reference")
-            if idx < len(metas) and isinstance(metas[idx], dict):
-                source = str(metas[idx].get("source") or source)
-            dist = float(dists[idx]) if idx < len(dists) else 999.0
-            scored_chunks.append((dist, source, str(chunk).strip()))
-
-    if not scored_chunks:
-        return ""
-
-    scored_chunks.sort(key=lambda x: x[0])
-    parts: List[str] = []
-    total = 0
-    for _, source, chunk in scored_chunks[: max(1, top_k * 2)]:
-        block = f"[参考资料片段: {source}]\n{chunk}"
-        total += len(block)
-        if total > max_chars:
-            break
-        parts.append(block)
-    merged = "\n\n".join(parts).strip()
-    return merged[:max_chars] if merged else ""
-
-
 def retrieve_reference_context(
     reference_docs: Sequence[dict],
     query_text: str,
     *,
+    user_token: str = "",
+    reference_kb_ids: Sequence[str] | None = None,
     top_k: int = 8,
     max_chars: int = 6000,
 ) -> str:
-    """Retrieve top-k relevant chunks from reference docs using Chroma.
+    """Retrieve top-k relevant chunks from reference docs using Chroma embeddings.
 
-    If entries include collection_name, query persisted on-disk collections first.
-    Otherwise, fallback to transient querying with inline text.
+    Falls back to simple truncation when Chroma or embeddings are unavailable.
     """
 
     docs_input = [doc for doc in reference_docs if isinstance(doc, dict)]
-    if not docs_input:
-        return ""
 
-    persisted = [d for d in docs_input if d.get("collection_name")]
-    if persisted:
+    kb_ids = [str(i).strip() for i in (reference_kb_ids or []) if str(i).strip()]
+
+    if user_token and kb_ids:
         try:
-            merged = _retrieve_from_persistent_collections(
-                persisted,
-                query_text,
-                top_k=top_k,
-                max_chars=max_chars,
+            client = _build_persistent_client()
+            embedding_function = _build_embedding_function()
+            collection = client.get_collection(
+                name=_user_collection_name(user_token),
+                embedding_function=embedding_function,
             )
-            if merged:
-                return merged
+            query = (query_text or "").strip() or "审校人名 身份 组织 时间 事实一致性"
+            where = {"kb_id": {"$in": kb_ids}}
+            result = collection.query(
+                query_texts=[query], n_results=max(1, top_k), where=where
+            )
+
+            ret_docs = (result.get("documents") or [[]])[0]
+            ret_meta = (result.get("metadatas") or [[]])[0]
+            if ret_docs:
+                parts: List[str] = []
+                total = 0
+                for i, chunk in enumerate(ret_docs):
+                    source = "reference"
+                    if i < len(ret_meta) and isinstance(ret_meta[i], dict):
+                        source = str(ret_meta[i].get("source") or source)
+                    block = f"[参考资料片段: {source}]\n{str(chunk).strip()}"
+                    if not str(chunk).strip():
+                        continue
+                    total += len(block)
+                    if total > max_chars:
+                        break
+                    parts.append(block)
+                merged = "\n\n".join(parts).strip()
+                if merged:
+                    return merged[:max_chars]
         except Exception:
             pass
+
+    if not docs_input:
+        return ""
 
     client = None
     collection_name = ""
@@ -246,6 +224,7 @@ def retrieve_reference_context(
         embedding_function = _build_embedding_function()
 
         try:
+            # Prefer ephemeral mode to avoid any on-disk persistence.
             client = chromadb.EphemeralClient(
                 settings=Settings(anonymized_telemetry=False)
             )

@@ -110,8 +110,7 @@ def _merge_key(issue: dict) -> str:
 def merge_llm_vlm_issues(
     issues_text: Optional[List],
     issues_vlm: Optional[List],
-    *,
-    enable_thinking: bool = True,
+    enable_thinking: bool = False,
 ) -> List[dict]:
     """Merge text-LLM and VLM issues with text-LLM priority on duplicates."""
 
@@ -140,11 +139,7 @@ def merge_llm_vlm_issues(
         f"B_JSON:\n{json.dumps(vlm_items, ensure_ascii=False)[:45000]}"
     )
 
-    raw = _call_llm(
-        prompt,
-        temperature=0.5,
-        enable_thinking=enable_thinking,
-    )
+    raw = _call_llm(prompt, enable_thinking=enable_thinking)
     merged = _parse_issues(raw) if raw else []
     if isinstance(merged, list) and merged:
         return [d for d in merged if isinstance(d, dict)]
@@ -170,8 +165,8 @@ def merge_llm_vlm_issues(
 def _call_llm(
     prompt: str,
     *,
-    temperature: float = 0.5,
     enable_thinking: bool = True,
+    temperature: float = 0.5,
 ) -> Optional[str]:
     cfg = _get_config()
     if not cfg["endpoint"] or not cfg["model"]:
@@ -180,37 +175,22 @@ def _call_llm(
 
     try:
         client = OpenAI(api_key=cfg["api_key"], base_url=cfg["endpoint"])
-        req_kwargs = {
-            "model": cfg["model"],
-            "messages": [
+        completion = client.chat.completions.create(
+            model=cfg["model"],
+            messages=[
                 {
                     "role": "system",
                     "content": "You are a text quality auditor. Return JSON with an 'issues' array.",
                 },
                 {"role": "user", "content": prompt},
             ],
-            "response_format": {"type": "json_object"},
-            "temperature": float(temperature),
-        }
-
-        if not enable_thinking:
-            req_kwargs["extra_body"] = {
-                "chat_template_kwargs": {"enable_thinking": False},
-                "enable_thinking": False,  # in case
-            }
-
-        try:
-            completion = client.chat.completions.create(**req_kwargs)
-        except Exception:
-            # Fallback for non-Qwen endpoints that reject extra_body.
-            if not enable_thinking:
-                print(
-                    "LLM call failed with thinking disabled, retrying without thinking control."
-                )
-                req_kwargs.pop("extra_body", None)
-                completion = client.chat.completions.create(**req_kwargs)
-            else:
-                raise
+            temperature=temperature,
+            extra_body={
+                "chat_template_kwargs": {"enable_thinking": bool(enable_thinking)},
+                "enable_thinking": bool(enable_thinking),  # in case
+            },
+            response_format={"type": "json_object"},
+        )
         return completion.choices[0].message.content
     except Exception:
         return None
@@ -220,7 +200,6 @@ def audit_text(
     bundle: ArticleBundle,
     checklist: Optional[List[str]] = None,
     reference_context: str = "",
-    *,
     enable_thinking: bool = True,
 ) -> List[Issue]:
     """Call text LLM to flag typos/format issues. Returns an Issue list."""
@@ -257,8 +236,8 @@ def audit_text(
 
     raw = _call_llm(
         prompt,
-        temperature=0.5,
         enable_thinking=enable_thinking,
+        temperature=0.5,
     )
     print("## LLM Raw Response:\n", raw)  # Debug logging
     if not raw:

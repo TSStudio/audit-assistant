@@ -1,6 +1,5 @@
 """Task orchestration with persistent storage."""
 
-from concurrent.futures import ThreadPoolExecutor, as_completed
 from threading import Thread
 from typing import List, Optional, Tuple
 from uuid import uuid4
@@ -26,12 +25,13 @@ def start_audit(
     source_label: str,
     checklist: Optional[List[str]] = None,
     *,
+    user_token: str,
     fast_mode: bool = False,
-    user_token: str = "",
     source_mode: str = "url",
     upload_filename: Optional[str] = None,
     upload_content: Optional[bytes] = None,
     reference_docs: Optional[List[dict]] = None,
+    reference_kb_ids: Optional[List[str]] = None,
 ) -> AuditStatusResponse:
     record = create_task(
         str(source_label),
@@ -46,11 +46,13 @@ def start_audit(
             task_id,
             str(source_label),
             record.get("checklist") or [],
-            fast_mode,
             source_mode,
+            fast_mode,
             upload_filename,
             upload_content,
             reference_docs or [],
+            reference_kb_ids or [],
+            user_token,
         ),
         daemon=True,
     )
@@ -71,22 +73,26 @@ def _run_pipeline(
     task_id: str,
     source_label: str,
     checklist: Optional[List[str]] = None,
-    fast_mode: bool = False,
     source_mode: str = "url",
+    fast_mode: bool = False,
     upload_filename: Optional[str] = None,
     upload_content: Optional[bytes] = None,
     reference_docs: Optional[List[dict]] = None,
+    reference_kb_ids: Optional[List[str]] = None,
+    user_token: str = "",
 ) -> None:
     try:
         bundle, issues = run_pipeline(
             task_id,
             source_label,
             checklist=checklist or [],
-            fast_mode=fast_mode,
             source_mode=source_mode,
+            fast_mode=fast_mode,
             upload_filename=upload_filename,
             upload_content=upload_content,
             reference_docs=reference_docs or [],
+            reference_kb_ids=reference_kb_ids or [],
+            user_token=user_token,
         )
         complete_task(task_id, bundle, issues)
     except Exception as exc:  # noqa: BLE001
@@ -165,20 +171,6 @@ def _update_progress(task_id: str, progress: int, message: str) -> None:
     update_task(task_id, progress=progress, message=message)
 
 
-def _update_stage(
-    task_id: str,
-    status: TaskStatus,
-    progress: int,
-    message: str,
-) -> None:
-    update_task(
-        task_id,
-        status=status.value,
-        progress=progress,
-        message=message,
-    )
-
-
 def _attach_bboxes_from_text_blocks(
     bundle: ArticleBundle, issues: Optional[list]
 ) -> list:
@@ -247,11 +239,13 @@ def run_pipeline(
     task_id: str,
     source_label: str,
     checklist: Optional[List[str]] = None,
-    fast_mode: bool = False,
     source_mode: str = "url",
+    fast_mode: bool = False,
     upload_filename: Optional[str] = None,
     upload_content: Optional[bytes] = None,
     reference_docs: Optional[List[dict]] = None,
+    reference_kb_ids: Optional[List[str]] = None,
+    user_token: str = "",
 ) -> Tuple[ArticleBundle, list[Issue]]:
     """Run the full audit pipeline synchronously with progress updates."""
 
@@ -283,79 +277,41 @@ def run_pipeline(
     if bundle.source_url:
         query_parts.append(f"source={bundle.source_url}")
     rag_query = "\n".join([p for p in query_parts if p]).strip()
-    rag_context = retrieve_reference_context(reference_docs or [], rag_query)
+    rag_context = retrieve_reference_context(
+        reference_docs or [],
+        rag_query,
+        user_token=user_token,
+        reference_kb_ids=reference_kb_ids or [],
+    )
 
-    _update_stage(task_id, TaskStatus.llm_vlm_working, 65, "LLM/VLM parallel audit")
+    _update_progress(task_id, 65, "Text LLM audit")
+    issues_text = audit_text(
+        bundle,
+        checklist=checklist or [],
+        reference_context=rag_context,
+        enable_thinking=not fast_mode,
+    )
 
-    issues_text: list = []
-    issues_mm: list = []
+    # Attach bounding boxes from captured text blocks so the frontend can render directly.
+    issues_text = _attach_bboxes_from_text_blocks(bundle, issues_text)
 
-    with ThreadPoolExecutor(max_workers=2) as executor:
-        futures = {
-            executor.submit(
-                audit_text,
-                bundle,
-                checklist=checklist or [],
-                reference_context=rag_context,
-                enable_thinking=not fast_mode,
-            ): "llm"
-        }
-        if not disable_multimodal:
-            futures[
-                executor.submit(
-                    audit_multimodal,
-                    bundle,
-                    checklist=checklist or [],
-                    reference_context=rag_context,
-                    enable_thinking=not fast_mode,
-                )
-            ] = "vlm"
-
-        llm_done = False
-        vlm_done = disable_multimodal
-        for future in as_completed(futures):
-            role = futures[future]
-            if role == "llm":
-                issues_text = future.result()
-                # Attach bounding boxes from captured text blocks so the frontend can render directly.
-                issues_text = _attach_bboxes_from_text_blocks(bundle, issues_text)
-                llm_done = True
-            elif role == "vlm":
-                issues_mm = future.result()
-                vlm_done = True
-
-            if llm_done and vlm_done:
-                _update_stage(
-                    task_id,
-                    TaskStatus.llm_vlm_done,
-                    88,
-                    "LLM/VLM parallel audit done",
-                )
-            elif llm_done:
-                _update_stage(
-                    task_id,
-                    TaskStatus.llm_done_vlm_working,
-                    78,
-                    "LLM done, VLM working",
-                )
-            elif vlm_done:
-                _update_stage(
-                    task_id,
-                    TaskStatus.llm_working_vlm_done,
-                    78,
-                    "VLM done, LLM working",
-                )
-
-    if disable_multimodal and not issues_mm:
-        _update_stage(
-            task_id, TaskStatus.llm_vlm_done, 88, "Multimodal skipped for txt upload"
+    if disable_multimodal:
+        _update_progress(task_id, 85, "Multimodal skipped for txt upload")
+        issues_mm = []
+    else:
+        _update_progress(task_id, 85, "Multimodal LLM audit")
+        issues_mm = audit_multimodal(
+            bundle,
+            checklist=checklist or [],
+            reference_context=rag_context,
+            enable_thinking=not fast_mode,
         )
 
     _update_progress(task_id, 92, "Merging LLM and multimodal issues")
     issues = merge_llm_vlm_issues(
         issues_text,
         issues_mm,
-        enable_thinking=not fast_mode,
+        enable_thinking=False,
     )
     try:
         print(
@@ -366,7 +322,9 @@ def run_pipeline(
     return bundle, issues
 
 
-def get_status(task_id: str, user_token: str) -> Optional[AuditStatusResponse]:
+def get_status(
+    task_id: str, *, user_token: Optional[str] = None
+) -> Optional[AuditStatusResponse]:
     record = get_task(task_id, user_token=user_token)
     if not record:
         return None

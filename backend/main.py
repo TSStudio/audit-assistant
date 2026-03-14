@@ -1,32 +1,22 @@
 import json
 from pathlib import Path
-from typing import List, Optional
-from uuid import uuid4
+from typing import List
 
-from fastapi import FastAPI, File, Form, Header, HTTPException, UploadFile
+from fastapi import FastAPI, File, Form, HTTPException, Request, UploadFile
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel, Field
 
-from .schema import (
-    AuditRequest,
-    AuditStatusResponse,
-    ChecklistLibraryItem,
-    ReferenceLibraryItem,
-    RenameRequest,
-)
+from .schema import AuditRequest, AuditStatusResponse
 from .ingest import extract_reference_documents, is_supported_reference_file
-from .rag import index_reference_document, make_reference_collection_name
+from .rag import delete_reference_documents, index_reference_documents
 from .store import (
-    create_user_checklist,
-    create_user_reference,
-    delete_user_checklist,
-    delete_user_reference,
-    get_user_checklists_by_ids,
-    get_user_references_by_ids,
-    list_user_checklists,
-    list_user_references,
-    rename_user_checklist,
-    rename_user_reference,
+    create_knowledge_base,
+    delete_knowledge_base,
+    get_knowledge_base,
+    get_knowledge_bases_by_ids,
+    list_knowledge_bases,
+    update_knowledge_base,
 )
 from .tasks import get_status, start_audit
 
@@ -38,11 +28,109 @@ app.mount("/api/captures", StaticFiles(directory=str(captures_dir)), name="captu
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:8001", "http://127.0.0.1:8001", "*"],
+    allow_origins=["http://localhost:8001", "http://127.0.0.1:8001"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+USER_TOKEN_COOKIE = "audit_user_token"
+
+
+class ChecklistKBCreateRequest(BaseModel):
+    name: str = Field(min_length=1, max_length=80)
+    items: List[str] = Field(default_factory=list)
+
+
+class KBRenameRequest(BaseModel):
+    name: str = Field(min_length=1, max_length=80)
+
+
+def _coerce_user_token(request: Request) -> str:
+    raw = (
+        request.cookies.get(USER_TOKEN_COOKIE)
+        or request.headers.get("X-User-Token")
+        or ""
+    )
+    token = str(raw).strip()
+    if not token:
+        raise HTTPException(status_code=400, detail="missing user token")
+    if len(token) > 128:
+        raise HTTPException(status_code=400, detail="invalid user token")
+    allowed = set("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_")
+    if any(ch not in allowed for ch in token):
+        raise HTTPException(status_code=400, detail="invalid user token")
+    return token
+
+
+def _parse_form_id_list(raw: str) -> List[str]:
+    value = (raw or "").strip()
+    if not value:
+        return []
+    try:
+        parsed = json.loads(value)
+        if isinstance(parsed, list):
+            ids = [str(item).strip() for item in parsed if str(item).strip()]
+            return list(dict.fromkeys(ids))
+    except Exception:
+        pass
+    ids = [line.strip() for line in value.splitlines() if line.strip()]
+    return list(dict.fromkeys(ids))
+
+
+def _parse_form_bool(raw: str, default: bool = False) -> bool:
+    value = str(raw or "").strip().lower()
+    if not value:
+        return default
+    return value in {"1", "true", "yes", "on", "y", "t"}
+
+
+def _collect_reference_docs_from_selected_kbs(
+    user_token: str,
+    selected_reference_ids: List[str],
+) -> List[dict]:
+    if not selected_reference_ids:
+        return []
+    selected = get_knowledge_bases_by_ids(
+        user_token,
+        "reference",
+        selected_reference_ids,
+    )
+    docs: List[dict] = []
+    for item in selected:
+        payload = item.get("payload") or {}
+        if isinstance(payload, dict):
+            text = str(payload.get("text") or "").strip()
+            if text:
+                docs.append(
+                    {
+                        "name": str(
+                            payload.get("name") or item.get("name") or "reference"
+                        ),
+                        "text": text,
+                    }
+                )
+    return docs
+
+
+def _collect_checklist_from_selected_kbs(
+    user_token: str,
+    selected_checklist_ids: List[str],
+) -> List[str]:
+    if not selected_checklist_ids:
+        return []
+    selected = get_knowledge_bases_by_ids(
+        user_token,
+        "checklist",
+        selected_checklist_ids,
+    )
+    merged: List[str] = []
+    for item in selected:
+        payload = item.get("payload") or {}
+        if isinstance(payload, dict) and isinstance(payload.get("items"), list):
+            merged.extend([str(v).strip() for v in payload["items"] if str(v).strip()])
+    return list(dict.fromkeys(merged))
 
 
 @app.get("/api/health")
@@ -50,33 +138,15 @@ def health():
     return {"status": "ok"}
 
 
-def _parse_form_ids(raw: str) -> List[str]:
-    value = (raw or "").strip()
-    if not value:
-        return []
-    try:
-        parsed = json.loads(value)
-        if isinstance(parsed, list):
-            return [str(item).strip() for item in parsed if str(item).strip()]
-    except Exception:
-        pass
-    return [line.strip() for line in value.splitlines() if line.strip()]
-
-
 @app.post("/api/audit", response_model=AuditStatusResponse)
-def create_audit(
-    request: AuditRequest,
-    user_token: str = Header(default="", alias="X-User-Token"),
-):
-    token = (user_token or "").strip()
-    if not token:
-        raise HTTPException(status_code=400, detail="missing user token")
+def create_audit(request: AuditRequest, req: Request):
+    user_token = _coerce_user_token(req)
     return start_audit(
         str(request.url),
         checklist=request.checklist,
         fast_mode=request.fast_mode,
         source_mode="url",
-        user_token=token,
+        user_token=user_token,
     )
 
 
@@ -124,31 +194,17 @@ def _parse_form_checklist(raw: str) -> List[str]:
     return [line.strip() for line in value.splitlines() if line.strip()]
 
 
-def _parse_form_bool(raw: str, default: bool = False) -> bool:
-    value = (raw or "").strip().lower()
-    if not value:
-        return default
-    if value in {"1", "true", "yes", "on"}:
-        return True
-    if value in {"0", "false", "no", "off"}:
-        return False
-    return default
-
-
 @app.post("/api/audit/upload", response_model=AuditStatusResponse)
 async def create_audit_upload(
+    request: Request,
     file: UploadFile = File(...),
     checklist: str = Form(default="[]"),
-    fast_mode: str = Form(default="false"),
-    checklist_ids: str = Form(default="[]"),
-    reference_ids: str = Form(default="[]"),
     reference_files: List[UploadFile] = File(default=[]),
-    user_token: str = Header(default="", alias="X-User-Token"),
+    selected_checklist_ids: str = Form(default="[]"),
+    selected_reference_ids: str = Form(default="[]"),
+    fast_mode: str = Form(default="false"),
 ):
-    token = (user_token or "").strip()
-    if not token:
-        raise HTTPException(status_code=400, detail="missing user token")
-
+    user_token = _coerce_user_token(request)
     try:
         content = await file.read()
     finally:
@@ -159,56 +215,42 @@ async def create_audit_upload(
     filename = file.filename or "upload.bin"
     label = f"[上传] {filename}"
     parsed_checklist = _parse_form_checklist(checklist)
-    selected_checklist_ids = _parse_form_ids(checklist_ids)
-    selected_reference_ids = _parse_form_ids(reference_ids)
-    fast_mode_enabled = _parse_form_bool(fast_mode, default=False)
-
-    if selected_checklist_ids:
-        selected_lists = get_user_checklists_by_ids(token, selected_checklist_ids)
-        for item in selected_lists:
-            for ck in item.get("items") or []:
-                text = str(ck).strip()
-                if text and text not in parsed_checklist:
-                    parsed_checklist.append(text)
-
-    reference_docs = []
-    selected_refs = get_user_references_by_ids(token, selected_reference_ids)
-    for item in selected_refs:
-        reference_docs.append(
-            {
-                "name": item.get("name") or item.get("filename") or "reference",
-                "collection_name": item.get("collection_name"),
-                "text": item.get("extracted_text") or item.get("preview") or "",
-            }
+    checklist_from_kb = _collect_checklist_from_selected_kbs(
+        user_token,
+        _parse_form_id_list(selected_checklist_ids),
+    )
+    reference_docs = await _parse_reference_files(reference_files)
+    selected_reference_id_list = _parse_form_id_list(selected_reference_ids)
+    reference_docs.extend(
+        _collect_reference_docs_from_selected_kbs(
+            user_token, selected_reference_id_list
         )
-    reference_docs.extend(await _parse_reference_files(reference_files))
-
+    )
+    final_checklist = list(dict.fromkeys([*checklist_from_kb, *parsed_checklist]))
     return start_audit(
         label,
-        checklist=parsed_checklist,
-        fast_mode=fast_mode_enabled,
-        user_token=token,
+        checklist=final_checklist,
+        fast_mode=_parse_form_bool(fast_mode, default=False),
         source_mode="upload",
         upload_filename=filename,
         upload_content=content,
         reference_docs=reference_docs,
+        reference_kb_ids=selected_reference_id_list,
+        user_token=user_token,
     )
 
 
 @app.post("/api/audit/url", response_model=AuditStatusResponse)
 async def create_audit_url(
+    request: Request,
     url: str = Form(...),
     checklist: str = Form(default="[]"),
-    fast_mode: str = Form(default="false"),
-    checklist_ids: str = Form(default="[]"),
-    reference_ids: str = Form(default="[]"),
     reference_files: List[UploadFile] = File(default=[]),
-    user_token: str = Header(default="", alias="X-User-Token"),
+    selected_checklist_ids: str = Form(default="[]"),
+    selected_reference_ids: str = Form(default="[]"),
+    fast_mode: str = Form(default="false"),
 ):
-    token = (user_token or "").strip()
-    if not token:
-        raise HTTPException(status_code=400, detail="missing user token")
-
+    user_token = _coerce_user_token(request)
     raw_url = (url or "").strip()
     if not raw_url:
         raise HTTPException(status_code=400, detail="url is required")
@@ -216,253 +258,215 @@ async def create_audit_url(
         raise HTTPException(status_code=400, detail="url must start with http/https")
 
     parsed_checklist = _parse_form_checklist(checklist)
-    selected_checklist_ids = _parse_form_ids(checklist_ids)
-    selected_reference_ids = _parse_form_ids(reference_ids)
-    fast_mode_enabled = _parse_form_bool(fast_mode, default=False)
-
-    if selected_checklist_ids:
-        selected_lists = get_user_checklists_by_ids(token, selected_checklist_ids)
-        for item in selected_lists:
-            for ck in item.get("items") or []:
-                text = str(ck).strip()
-                if text and text not in parsed_checklist:
-                    parsed_checklist.append(text)
-
-    reference_docs = []
-    selected_refs = get_user_references_by_ids(token, selected_reference_ids)
-    for item in selected_refs:
-        reference_docs.append(
-            {
-                "name": item.get("name") or item.get("filename") or "reference",
-                "collection_name": item.get("collection_name"),
-                "text": item.get("extracted_text") or item.get("preview") or "",
-            }
+    checklist_from_kb = _collect_checklist_from_selected_kbs(
+        user_token,
+        _parse_form_id_list(selected_checklist_ids),
+    )
+    reference_docs = await _parse_reference_files(reference_files)
+    selected_reference_id_list = _parse_form_id_list(selected_reference_ids)
+    reference_docs.extend(
+        _collect_reference_docs_from_selected_kbs(
+            user_token, selected_reference_id_list
         )
-    reference_docs.extend(await _parse_reference_files(reference_files))
-
+    )
+    final_checklist = list(dict.fromkeys([*checklist_from_kb, *parsed_checklist]))
     return start_audit(
         raw_url,
-        checklist=parsed_checklist,
-        fast_mode=fast_mode_enabled,
-        user_token=token,
+        checklist=final_checklist,
+        fast_mode=_parse_form_bool(fast_mode, default=False),
         source_mode="url",
         reference_docs=reference_docs,
+        reference_kb_ids=selected_reference_id_list,
+        user_token=user_token,
     )
 
 
 @app.get("/api/audit/{task_id}", response_model=AuditStatusResponse)
-def read_audit(
-    task_id: str, user_token: str = Header(default="", alias="X-User-Token")
-):
-    token = (user_token or "").strip()
-    if not token:
-        raise HTTPException(status_code=400, detail="missing user token")
-    status = get_status(task_id, token)
+def read_audit(task_id: str, request: Request):
+    user_token = _coerce_user_token(request)
+    status = get_status(task_id, user_token=user_token)
     if not status:
         raise HTTPException(status_code=404, detail="task not found")
     return status
 
 
-@app.get("/api/kb/checklists", response_model=List[ChecklistLibraryItem])
-def get_checklist_library(user_token: str = Header(default="", alias="X-User-Token")):
-    token = (user_token or "").strip()
-    if not token:
-        raise HTTPException(status_code=400, detail="missing user token")
-    rows = list_user_checklists(token)
-    return [
-        ChecklistLibraryItem(
-            checklist_id=row["checklist_id"],
-            name=row["name"],
-            items=row.get("items") or [],
-            created_at=row["created_at"],
-            updated_at=row["updated_at"],
-        )
-        for row in rows
-    ]
+@app.get("/api/kb/checklists")
+def list_checklist_kb(request: Request):
+    user_token = _coerce_user_token(request)
+    items = list_knowledge_bases(user_token, "checklist")
+    return {
+        "items": [
+            {
+                "kb_id": item["kb_id"],
+                "name": item["name"],
+                "items": (item.get("payload") or {}).get("items") or [],
+                "created_at": item["created_at"],
+                "updated_at": item["updated_at"],
+            }
+            for item in items
+        ]
+    }
 
 
-@app.post("/api/kb/checklists", response_model=ChecklistLibraryItem)
-async def create_checklist_library_item(
-    name: str = Form(default=""),
-    items: str = Form(default="[]"),
-    user_token: str = Header(default="", alias="X-User-Token"),
-):
-    token = (user_token or "").strip()
-    if not token:
-        raise HTTPException(status_code=400, detail="missing user token")
-    parsed_items = _parse_form_checklist(items)
-    if not parsed_items:
-        raise HTTPException(status_code=400, detail="checklist items cannot be empty")
-    safe_name = (name or "").strip() or f"清单-{uuid4().hex[:6]}"
-    row = create_user_checklist(token, safe_name, parsed_items)
-    return ChecklistLibraryItem(
-        checklist_id=row["checklist_id"],
-        name=row["name"],
-        items=row.get("items") or [],
-        created_at=row["created_at"],
-        updated_at=row["updated_at"],
+@app.post("/api/kb/checklists")
+def create_checklist_kb(payload: ChecklistKBCreateRequest, request: Request):
+    user_token = _coerce_user_token(request)
+    items = [str(v).strip() for v in payload.items if str(v).strip()]
+    if not items:
+        raise HTTPException(status_code=400, detail="checklist items are empty")
+    record = create_knowledge_base(
+        user_token=user_token,
+        kb_type="checklist",
+        name=payload.name.strip(),
+        payload={"items": list(dict.fromkeys(items))},
     )
+    return {
+        "kb_id": record["kb_id"],
+        "name": record["name"],
+        "items": record["payload"]["items"],
+        "created_at": record["created_at"],
+        "updated_at": record["updated_at"],
+    }
 
 
-@app.get("/api/kb/references", response_model=List[ReferenceLibraryItem])
-def get_reference_library(user_token: str = Header(default="", alias="X-User-Token")):
-    token = (user_token or "").strip()
-    if not token:
-        raise HTTPException(status_code=400, detail="missing user token")
-    rows = list_user_references(token)
-    return [
-        ReferenceLibraryItem(
-            reference_id=row["reference_id"],
-            name=row["name"],
-            filename=row.get("filename"),
-            collection_name=row["collection_name"],
-            preview=row.get("preview") or "",
-            created_at=row["created_at"],
-            updated_at=row["updated_at"],
-        )
-        for row in rows
-    ]
-
-
-@app.post("/api/kb/references", response_model=List[ReferenceLibraryItem])
-async def create_reference_library_items(
-    files: List[UploadFile] = File(default=[]),
-    names: str = Form(default="[]"),
-    user_token: str = Header(default="", alias="X-User-Token"),
-):
-    token = (user_token or "").strip()
-    if not token:
-        raise HTTPException(status_code=400, detail="missing user token")
-
-    parsed_docs = await _parse_reference_files(files)
-    if not parsed_docs:
-        raise HTTPException(status_code=400, detail="no valid reference files uploaded")
-
-    custom_names: List[str] = []
-    try:
-        parsed_names = json.loads(names or "[]")
-        if isinstance(parsed_names, list):
-            custom_names = [str(n).strip() for n in parsed_names]
-    except Exception:
-        pass
-
-    created: List[ReferenceLibraryItem] = []
-    for idx, doc in enumerate(parsed_docs):
-        doc_name = (
-            (custom_names[idx] if idx < len(custom_names) and custom_names[idx] else "")
-            or str(doc.get("name") or "reference").strip()
-            or "reference"
-        )
-        doc_text = str(doc.get("text") or "").strip()
-        if not doc_text:
-            continue
-        reference_id = uuid4().hex
-        collection_name = make_reference_collection_name(reference_id)
-        index_reference_document(collection_name, doc_name, doc_text)
-
-        preview = doc_text[:300]
-        saved = create_user_reference(
-            user_token=token,
-            name=doc_name,
-            filename=doc_name,
-            collection_name=collection_name,
-            extracted_text=doc_text,
-            preview=preview,
-        )
-        created.append(
-            ReferenceLibraryItem(
-                reference_id=saved["reference_id"],
-                name=saved["name"],
-                filename=saved.get("filename"),
-                collection_name=saved["collection_name"],
-                preview=saved.get("preview") or "",
-                created_at=saved["created_at"],
-                updated_at=saved["updated_at"],
-            )
-        )
-    if not created:
-        raise HTTPException(
-            status_code=400, detail="uploaded references contain no readable text"
-        )
-    return created
-
-
-@app.patch("/api/kb/references/{reference_id}", response_model=ReferenceLibraryItem)
-def rename_reference_item(
-    reference_id: str,
-    body: RenameRequest,
-    user_token: str = Header(default="", alias="X-User-Token"),
-):
-    token = (user_token or "").strip()
-    if not token:
-        raise HTTPException(status_code=400, detail="missing user token")
-    new_name = (body.name or "").strip()
-    if not new_name:
-        raise HTTPException(status_code=400, detail="name cannot be empty")
-    updated = rename_user_reference(token, reference_id, new_name)
+@app.patch("/api/kb/checklists/{kb_id}")
+def rename_checklist_kb(kb_id: str, payload: KBRenameRequest, request: Request):
+    user_token = _coerce_user_token(request)
+    item = get_knowledge_base(user_token, "checklist", kb_id)
+    if not item:
+        raise HTTPException(status_code=404, detail="knowledge base not found")
+    updated = update_knowledge_base(
+        user_token,
+        "checklist",
+        kb_id,
+        name=payload.name.strip(),
+        payload=item.get("payload") or {"items": []},
+    )
     if not updated:
-        raise HTTPException(status_code=404, detail="reference not found")
-    return ReferenceLibraryItem(
-        reference_id=updated["reference_id"],
-        name=updated["name"],
-        filename=updated.get("filename"),
-        collection_name=updated["collection_name"],
-        preview=updated.get("preview") or "",
-        created_at=updated["created_at"],
-        updated_at=updated["updated_at"],
-    )
+        raise HTTPException(status_code=404, detail="knowledge base not found")
+    return {
+        "kb_id": updated["kb_id"],
+        "name": updated["name"],
+        "items": (updated.get("payload") or {}).get("items") or [],
+        "created_at": updated["created_at"],
+        "updated_at": updated["updated_at"],
+    }
 
 
-@app.delete("/api/kb/references/{reference_id}")
-def delete_reference_item(
-    reference_id: str,
-    user_token: str = Header(default="", alias="X-User-Token"),
-):
-    token = (user_token or "").strip()
-    if not token:
-        raise HTTPException(status_code=400, detail="missing user token")
-    from .rag import delete_reference_collection
-
-    collection_name = delete_user_reference(token, reference_id)
-    if collection_name is None:
-        raise HTTPException(status_code=404, detail="reference not found")
-    delete_reference_collection(collection_name)
+@app.delete("/api/kb/checklists/{kb_id}")
+def remove_checklist_kb(kb_id: str, request: Request):
+    user_token = _coerce_user_token(request)
+    deleted = delete_knowledge_base(user_token, "checklist", kb_id)
+    if not deleted:
+        raise HTTPException(status_code=404, detail="knowledge base not found")
     return {"ok": True}
 
 
-@app.patch("/api/kb/checklists/{checklist_id}", response_model=ChecklistLibraryItem)
-def rename_checklist_item(
-    checklist_id: str,
-    body: RenameRequest,
-    user_token: str = Header(default="", alias="X-User-Token"),
+@app.get("/api/kb/references")
+def list_reference_kb(request: Request):
+    user_token = _coerce_user_token(request)
+    items = list_knowledge_bases(user_token, "reference")
+    return {
+        "items": [
+            {
+                "kb_id": item["kb_id"],
+                "name": item["name"],
+                "source_name": (item.get("payload") or {}).get("name") or item["name"],
+                "created_at": item["created_at"],
+                "updated_at": item["updated_at"],
+            }
+            for item in items
+        ]
+    }
+
+
+@app.post("/api/kb/references/upload")
+async def create_reference_kb_upload(
+    request: Request,
+    files: List[UploadFile] = File(default=[]),
 ):
-    token = (user_token or "").strip()
-    if not token:
-        raise HTTPException(status_code=400, detail="missing user token")
-    new_name = (body.name or "").strip()
-    if not new_name:
-        raise HTTPException(status_code=400, detail="name cannot be empty")
-    updated = rename_user_checklist(token, checklist_id, new_name)
-    if not updated:
-        raise HTTPException(status_code=404, detail="checklist not found")
-    return ChecklistLibraryItem(
-        checklist_id=updated["checklist_id"],
-        name=updated["name"],
-        items=updated.get("items") or [],
-        created_at=updated["created_at"],
-        updated_at=updated["updated_at"],
+    user_token = _coerce_user_token(request)
+    docs = await _parse_reference_files(files)
+    if not docs:
+        raise HTTPException(status_code=400, detail="no valid reference files uploaded")
+
+    created: List[dict] = []
+    for doc in docs:
+        source_name = str(doc.get("name") or "reference")
+        text = str(doc.get("text") or "").strip()
+        if not text:
+            continue
+        record = create_knowledge_base(
+            user_token=user_token,
+            kb_type="reference",
+            name=source_name,
+            payload={"name": source_name, "text": text},
+        )
+        index_reference_documents(
+            user_token=user_token,
+            kb_id=record["kb_id"],
+            docs=[{"name": source_name, "text": text}],
+        )
+        created.append(
+            {
+                "kb_id": record["kb_id"],
+                "name": record["name"],
+                "source_name": source_name,
+                "created_at": record["created_at"],
+                "updated_at": record["updated_at"],
+            }
+        )
+
+    if not created:
+        raise HTTPException(
+            status_code=400, detail="no text extracted from uploaded files"
+        )
+    return {"items": created}
+
+
+@app.patch("/api/kb/references/{kb_id}")
+def rename_reference_kb(kb_id: str, payload: KBRenameRequest, request: Request):
+    user_token = _coerce_user_token(request)
+    item = get_knowledge_base(user_token, "reference", kb_id)
+    if not item:
+        raise HTTPException(status_code=404, detail="knowledge base not found")
+
+    current_payload = item.get("payload") or {}
+    text = str(current_payload.get("text") or "").strip()
+    new_name = payload.name.strip()
+    new_payload = {"name": new_name, "text": text}
+
+    updated = update_knowledge_base(
+        user_token,
+        "reference",
+        kb_id,
+        name=new_name,
+        payload=new_payload,
     )
+    if not updated:
+        raise HTTPException(status_code=404, detail="knowledge base not found")
+
+    if text:
+        index_reference_documents(
+            user_token=user_token,
+            kb_id=kb_id,
+            docs=[{"name": new_name, "text": text}],
+        )
+
+    return {
+        "kb_id": updated["kb_id"],
+        "name": updated["name"],
+        "source_name": (updated.get("payload") or {}).get("name") or updated["name"],
+        "created_at": updated["created_at"],
+        "updated_at": updated["updated_at"],
+    }
 
 
-@app.delete("/api/kb/checklists/{checklist_id}")
-def delete_checklist_item(
-    checklist_id: str,
-    user_token: str = Header(default="", alias="X-User-Token"),
-):
-    token = (user_token or "").strip()
-    if not token:
-        raise HTTPException(status_code=400, detail="missing user token")
-    ok = delete_user_checklist(token, checklist_id)
-    if not ok:
-        raise HTTPException(status_code=404, detail="checklist not found")
+@app.delete("/api/kb/references/{kb_id}")
+def remove_reference_kb(kb_id: str, request: Request):
+    user_token = _coerce_user_token(request)
+    deleted = delete_knowledge_base(user_token, "reference", kb_id)
+    if not deleted:
+        raise HTTPException(status_code=404, detail="knowledge base not found")
+    delete_reference_documents(user_token, kb_id)
     return {"ok": True}
