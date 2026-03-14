@@ -22,7 +22,9 @@ onMounted(() => {
 
 <style scoped>
 .app-shell {
+    width: 100%;
     min-height: 100vh;
+    min-height: 100dvh;
     background:
         radial-gradient(
             circle at 20% 20%,
@@ -61,7 +63,15 @@ onMounted(() => {
 }
 
 .content {
+    width: 100%;
+    min-width: 0;
+    min-height: 100vh;
+    min-height: 100dvh;
     padding: 0;
+}
+
+.content > * {
+    width: 100%;
 }
 
 .fade-enter-active,

@@ -192,7 +192,8 @@ def _call_llm(
             response_format={"type": "json_object"},
         )
         return completion.choices[0].message.content
-    except Exception:
+    except Exception as e:
+        print("LLM call failed:", str(e))
         return None
 
 
