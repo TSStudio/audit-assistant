@@ -30,14 +30,20 @@
 
         <div class="result-toolbar">
             <div class="toolbar-chips">
-                <span class="schip schip-g"
-                    >已保留 {{ decisionStats.kept }}</span
-                >
-                <span class="schip schip-r"
-                    >已驳回 {{ decisionStats.rejected }}</span
-                >
+                <span class="schip schip-g">已保留 {{ decisionStats.kept }}</span>
+                <span class="schip schip-r">已驳回 {{ decisionStats.rejected }}</span>
                 <span class="ct-chip">{{ displayIssues.length }} 个问题</span>
+                <!-- ★ COLLAB: 评论总数 -->
+                <span
+                    v-if="collabActive && totalCommentCount > 0"
+                    class="ct-chip"
+                    style="background:#f5f3ff;color:#5b21b6"
+                >
+                    💬 {{ totalCommentCount }} 条评论
+                </span>
             </div>
+            <!-- ★ 键盘快捷键提示 -->
+            <span class="kbd-hint">↑↓ / J K 切换　空格 驳回</span>
             <button
                 class="ghost-sm"
                 :disabled="!customIssues.length"
@@ -48,6 +54,7 @@
         </div>
 
         <div class="result-wrap">
+            <!-- screenshot -->
             <div
                 class="shot-pane"
                 ref="shotWrapper"
@@ -68,25 +75,23 @@
                 />
                 <div v-else class="shot-ph">
                     <SvgImage
-                        style="
-                            width: 32px;
-                            height: 32px;
-                            opacity: 0.3;
-                            margin-bottom: 8px;
-                        "
+                        style="width: 32px; height: 32px; opacity: 0.3; margin-bottom: 8px"
                     />
                     <p>截图在审计完成后显示</p>
                 </div>
+                <!-- ★ overlay-box 增加双向 hover 事件 -->
                 <div
                     v-for="issue in issuesWithBox"
                     :key="`box-${issue.id}`"
                     class="overlay-box"
                     :class="{
-                        active: hoverIssueId === issue.id,
-                        manual: issue.manual,
+                        active:   hoverIssueId === issue.id,
+                        manual:   issue.manual,
                         rejected: isRejected(issue.id),
                     }"
                     :style="boxStyle(issue)"
+                    @mouseenter="hoverIssueId = issue.id"
+                    @mouseleave="hoverIssueId = null"
                 />
                 <div
                     v-if="drawingPreview"
@@ -95,6 +100,7 @@
                 />
             </div>
 
+            <!-- issues pane -->
             <div
                 class="issues-pane"
                 :style="{ height: issuesPaneRenderHeight + 'px' }"
@@ -104,10 +110,11 @@
                         v-for="item in positionedIssues"
                         :key="item.issue.id"
                         class="i-card"
+                        :data-id="item.issue.id"
                         :class="{
-                            active: hoverIssueId === item.issue.id,
+                            active:   hoverIssueId === item.issue.id,
                             resolved: isRejected(item.issue.id),
-                            manual: item.issue.manual,
+                            manual:   item.issue.manual,
                         }"
                         :style="{ top: item.top + 'px' }"
                         :ref="(el) => setIssueRef(item.issue.id, el)"
@@ -209,6 +216,9 @@
                                 >
                                 <span v-if="item.issue.manual">手工批注</span>
                             </div>
+
+                            <!-- ★ COLLAB: 每张卡片底部挂载评论线程 -->
+                            <HomeIssueThread :issue-id="item.issue.id" />
                         </div>
                     </div>
                 </template>
@@ -228,9 +238,12 @@
 <script setup>
 import { inject } from "vue";
 import { SvgImage, SvgPlus } from "./icons";
+import HomeIssueThread from "./HomeIssueThread.vue"; // ★ COLLAB
 
 const vm = inject("homeVm");
 if (!vm) throw new Error("homeVm is not provided");
+const collabVm = inject("collabVm"); // ★ COLLAB
+if (!collabVm) throw new Error("collabVm is not provided");
 
 const {
     allResolved,
@@ -262,4 +275,6 @@ const {
     undoReject,
     updateNote,
 } = vm;
+
+const { collabActive, totalCommentCount } = collabVm; // ★ COLLAB
 </script>

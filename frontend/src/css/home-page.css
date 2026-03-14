@@ -1380,3 +1380,131 @@
         grid-template-columns: 1fr;
     }
 }
+/* ════════════════════════════════════════════════════════════════
+   协作功能追加样式 — append 到 home-page.css 末尾
+   ════════════════════════════════════════════════════════════════ */
+
+/* ── 键盘快捷键提示 ──────────────────────────────────────────── */
+.kbd-hint {
+    font-size: 10px;
+    color: #b0aca6;
+    margin-right: auto;
+    padding-left: 2px;
+    letter-spacing: .01em;
+}
+
+/* ── overlay-box：正常模式响应鼠标，画框模式下禁用 ──────────── */
+/* 删除或覆盖原有的 pointer-events: none */
+.overlay-box {
+    cursor: pointer;
+    pointer-events: all; /* 覆盖原来的 none */
+}
+.shot-pane.drawing .overlay-box {
+    pointer-events: none;
+    cursor: crosshair;
+}
+
+/* ── i-card resolved：右移淡出效果 ──────────────────────────── */
+/* 在原有 .i-card.resolved 规则中追加 transform */
+.i-card.resolved {
+    transform: translateX(6px); /* 追加，原有的 opacity/border-color 保留 */
+}
+
+/* ── presence 头像堆叠（topbar / 右侧面板共用）───────────────── */
+.presence-stack {
+    display: flex;
+    align-items: center;
+}
+.presence-avatar {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    font-weight: 700;
+    flex-shrink: 0;
+    border: 2px solid #fff;
+    margin-left: -8px;
+    position: relative;
+    cursor: default;
+    transition: opacity .2s;
+}
+.presence-stack .presence-avatar:first-child { margin-left: 0; }
+.presence-dot {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #2d9e5f;
+    border: 1.5px solid #fff;
+}
+.online-label {
+    font-size: 10px;
+    color: #2d9e5f;
+    font-weight: 600;
+    margin-left: 8px;
+    white-space: nowrap;
+}
+
+/* ── presence 颜色 ───────────────────────────────────────────── */
+.pav-amber  { background: #fde8c8; color: #8b4d0a; }
+.pav-blue   { background: #dbeafe; color: #1e3a8a; }
+.pav-green  { background: #d4f4e2; color: #1a6e3c; }
+.pav-purple { background: #ede9fe; color: #5b21b6; }
+.pav-coral  { background: #fce7f3; color: #9d174d; }
+
+/* ── 分享按钮（topbar）──────────────────────────────────────── */
+.share-btn {
+    padding: 5px 12px;
+    border-radius: 20px;
+    border: 1.5px solid #c7c6f0;
+    background: #f5f3ff;
+    color: #5b21b6;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    transition: all .15s;
+}
+.share-btn:hover { background: #ede9fe; }
+
+/* ── 右侧面板：协作成员行 ────────────────────────────────────── */
+.collab-member-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 8px;
+    border-radius: 9px;
+    background: #fafaf8;
+    border: 1px solid #edeae5;
+}
+.collab-member-info { flex: 1; min-width: 0; }
+.collab-member-name  { font-size: 11px; font-weight: 600; color: #1a1a1a; }
+.collab-member-status { font-size: 9px; color: #b0aca6; }
+.collab-member-status.online { color: #2d9e5f; }
+
+/* ── 角色徽章 ────────────────────────────────────────────────── */
+.role-badge { font-size: 9px; padding: 2px 7px; border-radius: 20px; font-weight: 600; white-space: nowrap; }
+.rb-owner { background: #fde8c8; color: #8b4d0a; }
+.rb-edit  { background: #dbeafe; color: #1e3a8a; }
+.rb-view  { background: #f0ede8; color: #7a7872; }
+
+/* ── 右侧面板：动态列表 ──────────────────────────────────────── */
+.activity-item {
+    display: flex;
+    gap: 8px;
+    padding: 7px 0;
+    border-bottom: 1px solid #f0ede8;
+}
+.activity-item:last-child { border-bottom: none; }
+.activity-body { flex: 1; min-width: 0; }
+.activity-name { font-size: 11px; font-weight: 600; color: #1a1a1a; }
+.activity-desc { font-size: 10px; color: #7a7872; margin-top: 1px; line-height: 1.4; }
+.activity-time { font-size: 9px; color: #b0aca6; flex-shrink: 0; margin-top: 1px; }
