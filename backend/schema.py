@@ -134,3 +134,25 @@ class AuditStatusResponse(BaseModel):
         le=100,
         description="0-100 pipeline progress indicator",
     )
+
+
+class ChecklistLibraryItem(BaseModel):
+    checklist_id: str
+    name: str
+    items: List[str] = Field(default_factory=list)
+    created_at: int
+    updated_at: int
+
+
+class ReferenceLibraryItem(BaseModel):
+    reference_id: str
+    name: str
+    filename: Optional[str] = None
+    collection_name: str
+    preview: Optional[str] = None
+    created_at: int
+    updated_at: int
+
+
+class RenameRequest(BaseModel):
+    name: str

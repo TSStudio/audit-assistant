@@ -25,12 +25,17 @@ def start_audit(
     source_label: str,
     checklist: Optional[List[str]] = None,
     *,
+    user_token: str = "",
     source_mode: str = "url",
     upload_filename: Optional[str] = None,
     upload_content: Optional[bytes] = None,
     reference_docs: Optional[List[dict]] = None,
 ) -> AuditStatusResponse:
-    record = create_task(str(source_label), checklist=checklist or [])
+    record = create_task(
+        str(source_label),
+        checklist=checklist or [],
+        user_token=user_token,
+    )
     task_id = record["task_id"]
 
     thread = Thread(
@@ -292,8 +297,8 @@ def run_pipeline(
     return bundle, issues
 
 
-def get_status(task_id: str) -> Optional[AuditStatusResponse]:
-    record = get_task(task_id)
+def get_status(task_id: str, user_token: str) -> Optional[AuditStatusResponse]:
+    record = get_task(task_id, user_token=user_token)
     if not record:
         return None
     bundle = None
