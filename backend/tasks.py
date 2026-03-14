@@ -1,5 +1,6 @@
 """Task orchestration with persistent storage."""
 
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from threading import Thread
 from typing import List, Optional, Tuple
 from uuid import uuid4
@@ -121,6 +122,12 @@ def _coerce_issues(raw: Optional[List]) -> List[Issue]:
             mapped["type"] = "compliance"
         elif issue_type == "format":
             mapped["type"] = "layout"
+        elif issue_type == "layout_issue":
+            mapped["type"] = "layout"
+        elif issue_type == "qr_error":
+            mapped["type"] = "qrcode"
+        elif issue_type == "ocr_error":
+            mapped["type"] = "typo"
         elif issue_type == "other":
             mapped["type"] = "compliance"
         elif issue_type not in {
@@ -167,8 +174,17 @@ def _coerce_issues(raw: Optional[List]) -> List[Issue]:
     return cleaned
 
 
-def _update_progress(task_id: str, progress: int, message: str) -> None:
-    update_task(task_id, progress=progress, message=message)
+def _update_progress(
+    task_id: str,
+    progress: int,
+    message: str,
+    *,
+    status: Optional[TaskStatus] = None,
+) -> None:
+    kwargs = {"progress": progress, "message": message}
+    if status is not None:
+        kwargs["status"] = status.value
+    update_task(task_id, **kwargs)
 
 
 def _attach_bboxes_from_text_blocks(
@@ -284,27 +300,95 @@ def run_pipeline(
         reference_kb_ids=reference_kb_ids or [],
     )
 
-    _update_progress(task_id, 65, "Text LLM audit")
-    issues_text = audit_text(
-        bundle,
-        checklist=checklist or [],
-        reference_context=rag_context,
-        enable_thinking=not fast_mode,
-    )
-
-    # Attach bounding boxes from captured text blocks so the frontend can render directly.
-    issues_text = _attach_bboxes_from_text_blocks(bundle, issues_text)
+    issues_text: list = []
+    issues_mm: list = []
 
     if disable_multimodal:
-        _update_progress(task_id, 85, "Multimodal skipped for txt upload")
-        issues_mm = []
-    else:
-        _update_progress(task_id, 85, "Multimodal LLM audit")
-        issues_mm = audit_multimodal(
+        _update_progress(
+            task_id,
+            70,
+            "Text LLM audit (VLM skipped for txt upload)",
+            status=TaskStatus.llm_working_vlm_done,
+        )
+        issues_text = audit_text(
             bundle,
             checklist=checklist or [],
             reference_context=rag_context,
             enable_thinking=not fast_mode,
+        )
+        issues_text = _attach_bboxes_from_text_blocks(bundle, issues_text)
+    else:
+        _update_progress(
+            task_id,
+            70,
+            "LLM and VLM audits running in parallel",
+            status=TaskStatus.llm_vlm_working,
+        )
+
+        def _run_text() -> list:
+            text_issues = audit_text(
+                bundle,
+                checklist=checklist or [],
+                reference_context=rag_context,
+                enable_thinking=not fast_mode,
+            )
+            return _attach_bboxes_from_text_blocks(bundle, text_issues)
+
+        def _run_vlm() -> list:
+            return audit_multimodal(
+                bundle,
+                checklist=checklist or [],
+                reference_context=rag_context,
+                enable_thinking=not fast_mode,
+            )
+
+        done_flags = {"text": False, "vlm": False}
+        with ThreadPoolExecutor(max_workers=2) as executor:
+            future_map = {
+                executor.submit(_run_text): "text",
+                executor.submit(_run_vlm): "vlm",
+            }
+            for future in as_completed(future_map):
+                name = future_map[future]
+                try:
+                    result = future.result() or []
+                except Exception:
+                    result = []
+                if name == "text":
+                    issues_text = result
+                    done_flags["text"] = True
+                else:
+                    issues_mm = result
+                    done_flags["vlm"] = True
+
+                if done_flags["text"] and done_flags["vlm"]:
+                    _update_progress(
+                        task_id,
+                        90,
+                        "LLM and VLM audits completed",
+                        status=TaskStatus.llm_vlm_done,
+                    )
+                elif done_flags["text"]:
+                    _update_progress(
+                        task_id,
+                        82,
+                        "Text LLM finished, VLM still running",
+                        status=TaskStatus.llm_done_vlm_working,
+                    )
+                elif done_flags["vlm"]:
+                    _update_progress(
+                        task_id,
+                        82,
+                        "VLM finished, text LLM still running",
+                        status=TaskStatus.llm_working_vlm_done,
+                    )
+
+    if disable_multimodal:
+        _update_progress(
+            task_id,
+            90,
+            "Text LLM completed; VLM skipped",
+            status=TaskStatus.llm_vlm_done,
         )
 
     _update_progress(task_id, 92, "Merging LLM and multimodal issues")

@@ -1,6 +1,7 @@
 import json
 from pathlib import Path
 from typing import List
+from urllib.parse import urlsplit
 
 from fastapi import FastAPI, File, Form, HTTPException, Request, UploadFile
 from fastapi.staticfiles import StaticFiles
@@ -22,17 +23,70 @@ from .tasks import get_status, start_audit
 
 app = FastAPI(title="Audit Assistant API")
 
+_DEV_ALLOWED_ORIGINS = {
+    "http://localhost:8001",
+    "http://127.0.0.1:8001",
+}
+
+
+def _extract_origin(value: str) -> str:
+    raw = str(value or "").strip()
+    if not raw:
+        return ""
+    try:
+        parsed = urlsplit(raw)
+        if parsed.scheme and parsed.netloc:
+            return f"{parsed.scheme}://{parsed.netloc}".rstrip("/")
+    except Exception:
+        pass
+    return raw.rstrip("/")
+
+
+def _append_vary(existing: str, token: str) -> str:
+    current = [v.strip() for v in (existing or "").split(",") if v.strip()]
+    if token not in current:
+        current.append(token)
+    return ", ".join(current)
+
 captures_dir = Path(__file__).resolve().parent / "captures"
 captures_dir.mkdir(exist_ok=True)
 app.mount("/api/captures", StaticFiles(directory=str(captures_dir)), name="captures")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:8001", "http://127.0.0.1:8001"],
+    allow_origins=sorted(_DEV_ALLOWED_ORIGINS),
+    allow_origin_regex=r"^https?://(localhost|127\.0\.0\.1)(:\d+)?$",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+@app.middleware("http")
+async def add_capture_cors_headers(request: Request, call_next):
+    response = await call_next(request)
+
+    path = request.url.path or ""
+    if not path.startswith("/api/captures/"):
+        return response
+
+    origin = _extract_origin(request.headers.get("origin") or "")
+    referer_origin = _extract_origin(request.headers.get("referer") or "")
+
+    allowed_origin = ""
+    if origin in _DEV_ALLOWED_ORIGINS:
+        allowed_origin = origin
+    elif referer_origin in _DEV_ALLOWED_ORIGINS:
+        allowed_origin = referer_origin
+
+    if allowed_origin:
+        response.headers["Access-Control-Allow-Origin"] = allowed_origin
+        response.headers["Access-Control-Allow-Credentials"] = "true"
+        response.headers["Cross-Origin-Resource-Policy"] = "cross-origin"
+        response.headers["Vary"] = _append_vary(response.headers.get("Vary", ""), "Origin")
+        response.headers["Vary"] = _append_vary(response.headers.get("Vary", ""), "Referer")
+
+    return response
 
 
 USER_TOKEN_COOKIE = "audit_user_token"

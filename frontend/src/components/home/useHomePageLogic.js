@@ -499,17 +499,29 @@ export default function useHomePageLogic() {
 
     function dotColor(s) {
         return (
-            { running: "#d97706", completed: "#2d9e5f", failed: "#dc2626" }[
-                s
-            ] || "#b0aca6"
+            {
+                running: "#d97706",
+                llm_vlm_working: "#d97706",
+                llm_done_vlm_working: "#c97a00",
+                llm_working_vlm_done: "#b7791f",
+                llm_vlm_done: "#2d9e5f",
+                completed: "#2d9e5f",
+                failed: "#dc2626",
+            }[s] || "#b0aca6"
         );
     }
 
     function statusText(s) {
         return (
-            { running: "运行中", completed: "已完成", failed: "失败" }[s] ||
-            s ||
-            "未知"
+            {
+                running: "运行中",
+                llm_vlm_working: "LLM/VLM 并行审核中",
+                llm_done_vlm_working: "LLM完成，VLM进行中",
+                llm_working_vlm_done: "VLM完成，LLM进行中",
+                llm_vlm_done: "LLM/VLM审核完成",
+                completed: "已完成",
+                failed: "失败",
+            }[s] || s || "未知"
         );
     }
 

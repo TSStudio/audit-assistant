@@ -1,23 +1,23 @@
-"""Multimodal audit using Qwen (DashScope OpenAI-compatible API).
+"""Multimodal audit using DashScope-compatible VLM.
 
-Loads DASHSCOPE_API_KEY and optional BASE/MODEL from env/.env.
-Sends a screenshot (or downloaded image) plus structured text summary to the model.
-If configuration or image is missing, returns an empty list.
+The screenshot is cut into vertical chunks with slight overlap.
+Each chunk is sent to VLM concurrently, and the model must return pixel bounding boxes.
+Chunk-local boxes are mapped back to full-image coordinates.
 """
 
 import base64
 import json
 import os
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from io import BytesIO
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
-from uuid import uuid4
+from typing import List, Optional
 
 from dotenv import load_dotenv
 from openai import OpenAI
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image
 
-from .schema import ArticleBundle, Issue, IssueEvidence, IssueType, Severity
+from .schema import ArticleBundle, Issue
 
 
 load_dotenv()
@@ -34,46 +34,152 @@ def _get_config():
     }
 
 
-def _issue_from_dict(data: dict) -> Issue:
-    def _coerce_type(value) -> IssueType:
-        try:
-            return IssueType(value)
-        except Exception:
-            if isinstance(value, str) and value.lower() == "conflict":
-                return IssueType.image_text_mismatch
-            return IssueType.image_text_mismatch
+def _encode_image_to_data_url(image: Image.Image, suffix: str = "png") -> Optional[str]:
+    try:
+        out = BytesIO()
+        ext = (suffix or "png").lower().lstrip(".")
+        fmt = "JPEG" if ext in {"jpg", "jpeg"} else "PNG"
+        image.save(out, format=fmt)
+        mime = "jpeg" if fmt == "JPEG" else "png"
+        b64 = base64.b64encode(out.getvalue()).decode("ascii")
+        return f"data:image/{mime};base64,{b64}"
+    except Exception:
+        return None
 
-    def _coerce_severity(value) -> Severity:
-        try:
-            return Severity(value)
-        except Exception:
-            if isinstance(value, str) and value.lower() == "suggest":
-                return Severity.info
-            return Severity.warn
 
-    evidence_data = data.get("evidence", {}) if isinstance(data, dict) else {}
-    return Issue(
-        id=data.get("id") or uuid4().hex,
-        type=_coerce_type(data.get("type", IssueType.image_text_mismatch)),
-        severity=_coerce_severity(data.get("severity", Severity.warn)),
-        evidence=IssueEvidence(
-            **{k: v for k, v in evidence_data.items() if v is not None}
-        ),
-        recommendation=data.get("recommendation"),
-        confidence=data.get("confidence"),
-    )
+def _slice_image_vertical(
+    path: Path,
+    *,
+    max_vertical_ratio: float = 1.5,
+    overlap_ratio: float = 0.08,
+    min_overlap_px: int = 24,
+    max_overlap_px: int = 120,
+) -> tuple[list[dict], Optional[int], Optional[int]]:
+    if not path.exists():
+        return [], None, None
+
+    try:
+        with Image.open(path) as img:
+            src = img.convert("RGB")
+            width, height = src.size
+            suffix = path.suffix.lstrip(".").lower() or "png"
+
+            max_chunk_height = max(1, int(width * max_vertical_ratio))
+            if height <= max_chunk_height:
+                data_url = _encode_image_to_data_url(src, suffix)
+                if not data_url:
+                    return [], width, height
+                return (
+                    [
+                        {
+                            "chunk_index": 1,
+                            "chunk_count": 1,
+                            "x_offset": 0,
+                            "y_offset": 0,
+                            "width": width,
+                            "height": height,
+                            "image_data_url": data_url,
+                        }
+                    ],
+                    width,
+                    height,
+                )
+
+            overlap = int(max_chunk_height * overlap_ratio)
+            overlap = max(min_overlap_px, overlap)
+            overlap = min(max_overlap_px, overlap)
+            overlap = min(overlap, max_chunk_height - 1)
+
+            chunks: list[dict] = []
+            y0 = 0
+            while y0 < height:
+                y1 = min(height, y0 + max_chunk_height)
+                crop = src.crop((0, y0, width, y1))
+                data_url = _encode_image_to_data_url(crop, suffix)
+                if data_url:
+                    chunks.append(
+                        {
+                            "chunk_index": len(chunks) + 1,
+                            "x_offset": 0,
+                            "y_offset": y0,
+                            "width": width,
+                            "height": y1 - y0,
+                            "image_data_url": data_url,
+                        }
+                    )
+                if y1 >= height:
+                    break
+                next_y = y1 - overlap
+                if next_y <= y0:
+                    next_y = y0 + 1
+                y0 = next_y
+
+            chunk_count = len(chunks)
+            for chunk in chunks:
+                chunk["chunk_count"] = chunk_count
+            return chunks, width, height
+    except Exception:
+        return [], None, None
+
+
+def _normalize_bbox(
+    bbox_val,
+    *,
+    chunk_w: int,
+    chunk_h: int,
+    x_offset: int,
+    y_offset: int,
+    full_w: int,
+    full_h: int,
+) -> Optional[dict]:
+    raw = None
+    if isinstance(bbox_val, (list, tuple)) and len(bbox_val) == 4:
+        try:
+            raw = {
+                "x": int(bbox_val[0]),
+                "y": int(bbox_val[1]),
+                "width": int(bbox_val[2]),
+                "height": int(bbox_val[3]),
+            }
+        except Exception:
+            raw = None
+    elif isinstance(bbox_val, dict):
+        try:
+            raw = {
+                "x": int(bbox_val.get("x", 0)),
+                "y": int(bbox_val.get("y", 0)),
+                "width": int(bbox_val.get("width", 0)),
+                "height": int(bbox_val.get("height", 0)),
+            }
+        except Exception:
+            raw = None
+
+    if not raw:
+        return None
+
+    x0 = max(0, min(raw["x"], chunk_w - 1))
+    y0 = max(0, min(raw["y"], chunk_h - 1))
+    w = max(1, min(raw["width"], chunk_w - x0))
+    h = max(1, min(raw["height"], chunk_h - y0))
+
+    gx = max(0, min(x_offset + x0, full_w - 1))
+    gy = max(0, min(y_offset + y0, full_h - 1))
+    gw = max(1, min(w, full_w - gx))
+    gh = max(1, min(h, full_h - gy))
+    return {"x": gx, "y": gy, "width": gw, "height": gh}
 
 
 def _parse_issues(
     raw: str,
+    *,
     screenshot_id: Optional[str],
-    grid_meta: Optional[Dict[str, float]] = None,
+    chunk_meta: dict,
+    full_size: tuple[int, int],
 ) -> List[Issue]:
-    raw = raw.strip()
     try:
-        data = json.loads(raw)
+        data = json.loads((raw or "").strip())
     except Exception:
-        print("Failed to parse Multimodal LLM Response")
+        print("Failed to parse Multimodal LLM response")
         return []
 
     if isinstance(data, dict) and "issues" in data:
@@ -81,212 +187,87 @@ def _parse_issues(
     if not isinstance(data, list):
         return []
 
-    normalized: List[dict] = []
-    used_ids = set()
+    chunk_w = int(chunk_meta.get("width") or 1)
+    chunk_h = int(chunk_meta.get("height") or 1)
+    x_offset = int(chunk_meta.get("x_offset") or 0)
+    y_offset = int(chunk_meta.get("y_offset") or 0)
+    full_w, full_h = full_size
 
-    def _col_to_idx(col: str) -> Optional[int]:
-        if not isinstance(col, str) or not col:
-            return None
-        letter = col.strip().upper()[0]
-        if "A" <= letter <= "H":
-            return ord(letter) - ord("A")
-        return None
-
-    def _grid_to_bbox(grid: dict) -> Optional[dict]:
-        if not grid_meta:
-            return None
-        col_w = grid_meta.get("col_width") or 1
-        row_h = grid_meta.get("row_height") or 1
-        img_w = grid_meta.get("width") or col_w * 8
-        img_h = grid_meta.get("height") or row_h
-        c0 = _col_to_idx(grid.get("col_begin"))
-        c1 = _col_to_idx(grid.get("col_end"))
-        r0 = grid.get("row_begin")
-        r1 = grid.get("row_end")
-        if c0 is None or c1 is None or r0 is None or r1 is None:
-            return None
-        try:
-            c0, c1 = int(c0), int(c1)
-            r0, r1 = int(r0) - 1, int(r1) - 1  # rows are 1-based from prompt
-        except Exception:
-            return None
-        c0, c1 = sorted((c0, c1))
-        r0, r1 = sorted((r0, r1))
-        x0 = int(round(c0 * col_w))
-        x1 = int(round((c1 + 1) * col_w))
-        y0 = int(round(r0 * row_h))
-        y1 = int(round((r1 + 1) * row_h))
-        x1 = min(x1, int(img_w))
-        y1 = min(y1, int(img_h))
-        width = max(1, x1 - x0)
-        height = max(1, y1 - y0)
-        return {"x": x0, "y": y0, "width": width, "height": height}
-
-    for item in data:
+    normalized: list[dict] = []
+    for idx, item in enumerate(data, start=1):
         if not isinstance(item, dict):
             continue
+
+        item = dict(item)
         ev = item.get("evidence") or {}
         if not isinstance(ev, dict):
             ev = {}
 
-        # If model placed bbox/quote at top-level, move into evidence.
         if "bbox" in item and "bbox" not in ev:
             ev["bbox"] = item.get("bbox")
         if "quote" in item and "quote" not in ev:
             ev["quote"] = item.get("quote")
+
+        bbox = _normalize_bbox(
+            ev.get("bbox"),
+            chunk_w=chunk_w,
+            chunk_h=chunk_h,
+            x_offset=x_offset,
+            y_offset=y_offset,
+            full_w=full_w,
+            full_h=full_h,
+        )
+        if bbox:
+            ev["bbox"] = bbox
+        elif "bbox" in ev:
+            ev.pop("bbox", None)
+
         if screenshot_id and not ev.get("screenshot_id"):
             ev["screenshot_id"] = screenshot_id
 
-        # Normalize bbox if model returns as list/tuple [x,y,w,h].
-        bbox_val = ev.get("bbox")
-        if isinstance(bbox_val, (list, tuple)) and len(bbox_val) == 4:
-            try:
-                x, y, w, h = bbox_val
-                ev["bbox"] = {
-                    "x": int(x),
-                    "y": int(y),
-                    "width": int(w),
-                    "height": int(h),
-                }
-            except Exception:
-                pass
-
-        # Convert grid coordinates to pixel bbox if provided.
-        bbox_grid = ev.get("bbox_grid") or item.get("bbox_grid") or ev.get("grid")
-        if isinstance(bbox_grid, dict):
-            grid_bbox = _grid_to_bbox(bbox_grid)
-            if grid_bbox:
-                ev.setdefault("bbox_grid", bbox_grid)
-                ev.setdefault("bbox", grid_bbox)
-
-        # Remove duplicated top-level bbox to avoid conflicting fields.
-        item = dict(item)
         item.pop("bbox", None)
-        item.pop("bbox_grid", None)
+        if not item.get("id"):
+            item["id"] = (
+                f"mm-c{chunk_meta.get('chunk_index', 0)}-{idx}"
+            )
         item["evidence"] = ev
         normalized.append(item)
-
-    for idx, item in enumerate(normalized, start=1):
-        raw_id = item.get("id")
-        base = f"mm-{raw_id}" if raw_id is not None else f"mm-{idx}"
-        dedup = base
-        counter = 1
-        while dedup in used_ids:
-            counter += 1
-            dedup = f"{base}-{counter}"
-        item["id"] = dedup
-        used_ids.add(dedup)
 
     return normalized
 
 
-def _encode_original(path: Path) -> Tuple[Optional[str], Optional[int], Optional[int]]:
-    if not path.exists():
-        return None, None, None
-    try:
-        suffix = path.suffix.lstrip(".").lower() or "png"
-        with Image.open(path) as img:
-            width, height = img.size
-            buffer = BytesIO()
-            image_format = (img.format or suffix or "PNG").upper()
-            try:
-                img.save(buffer, format=image_format)
-            except Exception:
-                img.save(buffer, format="PNG")
-        b64 = base64.b64encode(buffer.getvalue()).decode("ascii")
-        return f"data:image/{suffix};base64,{b64}", width, height
-    except Exception:
-        return None, None, None
-
-
-def _encode_grid_image(
-    path: Path,
-    grid_cols: int = 8,
-    grid_row_height: int = 150,
-) -> Tuple[
-    Optional[str],
-    Optional[dict],
-    Optional[str],
-]:
-    """Encode grid-overlaid image as data URL, returning grid meta and saved path."""
-
-    if not path.exists():
-        return None, None, None
-
-    try:
-        grid_path: Optional[Path] = None
-        suffix = path.suffix.lstrip(".").lower() or "png"
-        with Image.open(path) as img:
-            width, height = img.size
-            base = img.convert("RGBA")
-
-            overlay = Image.new("RGBA", base.size, (0, 0, 0, 0))
-            draw = ImageDraw.Draw(overlay)
-            font = ImageFont.load_default()
-            try:
-                font_path = Path(__file__).resolve().parent / "fonts" / "SIMHEI.TTF"
-                if font_path.exists():
-                    font = ImageFont.truetype(str(font_path), 14)
-            except Exception:
-                pass
-
-            col_width = width / float(max(grid_cols, 1))
-            total_rows = max(1, int((height + grid_row_height - 1) // grid_row_height))
-
-            for col_idx in range(grid_cols):
-                for row_idx in range(total_rows):
-                    x0 = int(round(col_idx * col_width))
-                    x1 = (
-                        int(round((col_idx + 1) * col_width))
-                        if col_idx < grid_cols - 1
-                        else width
-                    )
-                    y0 = row_idx * grid_row_height
-                    y1 = min(height, (row_idx + 1) * grid_row_height)
-                    draw.rectangle(
-                        [x0, y0, x1, y1],
-                        fill=(0, 0, 0, 0),
-                        outline=(255, 0, 0, 80),
-                        width=2,
-                    )
-                    label = f"{chr(ord('A') + col_idx)}{row_idx + 1}"
-                    draw.text((x0 + 4, y0 + 2), label, fill=(255, 0, 0, 80), font=font)
-
-            composed = Image.alpha_composite(base, overlay).convert("RGB")
-
-            image_format = (img.format or suffix or "PNG").upper()
-            buffer = BytesIO()
-            try:
-                composed.save(buffer, format=image_format)
-            except Exception:
-                composed.save(buffer, format="PNG")
-
-            try:
-                grid_path = path.with_name(f"{path.stem}-grid{path.suffix}")
-                composed.save(grid_path)
-            except Exception:
-                grid_path = None
-
-        grid_meta = {
-            "width": width,
-            "height": height,
-            "col_width": col_width,
-            "row_height": grid_row_height,
-            "cols": grid_cols,
-            "rows": total_rows,
-        }
-        b64 = base64.b64encode(buffer.getvalue()).decode("ascii")
-        return (
-            f"data:image/{suffix};base64,{b64}",
-            grid_meta,
-            str(grid_path) if grid_path else None,
+def _dedupe_issues(issues: List[dict]) -> List[dict]:
+    seen = set()
+    result: List[dict] = []
+    for item in issues:
+        if not isinstance(item, dict):
+            continue
+        ev = item.get("evidence") if isinstance(item.get("evidence"), dict) else {}
+        bbox = ev.get("bbox") if isinstance(ev.get("bbox"), dict) else {}
+        quote = " ".join(str(ev.get("quote") or "").strip().lower().split())
+        try:
+            x = int(bbox.get("x", 0)) // 24
+            y = int(bbox.get("y", 0)) // 24
+            w = int(bbox.get("width", 0)) // 24
+            h = int(bbox.get("height", 0)) // 24
+        except Exception:
+            x = y = w = h = 0
+        key = (
+            str(item.get("type") or "").strip().lower(),
+            quote,
+            x,
+            y,
+            w,
+            h,
         )
-    except Exception:
-        return None, None, None
+        if key in seen:
+            continue
+        seen.add(key)
+        result.append(item)
+    return result
 
 
 def _select_image_path(bundle: ArticleBundle) -> Optional[Path]:
-    # Only use the first captured screenshot for multimodal analysis
     if bundle.screenshots:
         shot_path = Path(bundle.screenshots[0].filename)
         if shot_path.exists():
@@ -295,11 +276,10 @@ def _select_image_path(bundle: ArticleBundle) -> Optional[Path]:
 
 
 def _call_vlm(
-    image_data_urls: List[str],
+    image_data_url: str,
     summary_text: str,
-    image_size: Tuple[Optional[int], Optional[int]],
-    grid_meta: Optional[Dict[str, float]] = None,
     *,
+    chunk_meta: dict,
     enable_thinking: bool = True,
     temperature: float = 0.5,
 ) -> Optional[str]:
@@ -308,47 +288,20 @@ def _call_vlm(
         return None
 
     client = OpenAI(api_key=cfg["api_key"], base_url=cfg["base_url"])
-
-    w, h = image_size
-    size_clause = f"当前图片尺寸为 width={w or 'unknown'} height={h or 'unknown'}。"
-    grid_clause = ""
-    if grid_meta:
-        grid_clause = (
-            f"图片已叠加网格，横向固定 {grid_meta.get('cols', 8)} 列，左到右标号 A-H；"
-            f"纵向自上而下每行 {grid_meta.get('row_height', 150)} 像素，行号从 1 开始。"
-            "bbox 只能使用网格坐标，字段 bbox_grid: {col_begin:'A'-'H', col_end:'A'-'H', row_begin:int, row_end:int}。"
-            "不要输出像素 bbox。"
-        )
+    chunk_w = chunk_meta.get("width")
+    chunk_h = chunk_meta.get("height")
 
     try:
-        if image_data_urls:
-            print("url0", image_data_urls[0][:50], "...")
         completion = client.chat.completions.create(
             model=cfg["model"],
             messages=[
                 {
                     "role": "system",
                     "content": (
-                        f"""你是视觉-文字审校员。必须返回 JSON 对象，字段：
-{{
-  "issues": [
-    {{
-      "id": "str",
-      "type": "image_text_mismatch|ocr_error|qr_error|layout_issue|other",
-      "severity": "info|warn|error",
-      "evidence": {{
-                "bbox_grid": {{"col_begin":"A-H","col_end":"A-H","row_begin":int,"row_end":int}},
-        "quote": "与证据相关的原文/识别文本",
-        "reason": "为什么这是问题"
-      }},
-      "recommendation": "如何修改"
-    }}
-  ]
-}}
-{size_clause} {grid_clause}
-你会收到两张图：第一张是原始截图（用于阅读和判断问题，不带网格）；第二张是叠加网格的同一张截图（只用于定位）。请基于第一张图理解内容，在第二张网格图上用 bbox_grid 给出位置，不要输出像素 bbox。
-约束：col_begin/col_end 取 A-H，row_begin/row_end 为正整数且 row_begin <= row_end。
-如果不确定，宁可给出覆盖证据区域的较大网格范围，但必须贴近证据位置。"""
+                        "你是视觉-文字审校员，必须返回 JSON 对象。"
+                        "输出格式: {\"issues\":[{\"id\":\"str\",\"type\":\"image_text_mismatch|ocr_error|qr_error|layout_issue|other\",\"severity\":\"info|warn|error\",\"evidence\":{\"bbox\":{\"x\":int,\"y\":int,\"width\":int,\"height\":int},\"quote\":\"...\",\"reason\":\"...\"},\"recommendation\":\"...\"}]}."
+                        "bbox 必须是当前切片坐标系像素位置，不允许用网格、归一化比例或整图坐标。"
+                        f"当前切片尺寸 width={chunk_w} height={chunk_h}，x/y 必须在切片内。"
                     ),
                 },
                 {
@@ -357,15 +310,12 @@ def _call_vlm(
                         {
                             "type": "text",
                             "text": (
-                                "查找图片中可能出现的问题。"
-                                "返回json结果。填充bbox。用中文回答。 **尽可能多地查找问题**。至少找出一个问题！\n\n"
-                                f"补充上下文（JSON 摘要或额外说明）：\n{summary_text}"
+                                "请审核这张切片中的视觉与文本问题。"
+                                "只输出 JSON。问题尽量全面，且必须提供 bbox。\n\n"
+                                f"补充上下文:\n{summary_text}"
                             ),
                         },
-                        *[
-                            {"type": "image_url", "image_url": {"url": url}}
-                            for url in image_data_urls
-                        ],
+                        {"type": "image_url", "image_url": {"url": image_data_url}},
                     ],
                 },
             ],
@@ -386,19 +336,20 @@ def audit_multimodal(
     reference_context: str = "",
     enable_thinking: bool = True,
 ) -> List[Issue]:
-    """Call Qwen VLM with an image and structured summary to check consistency."""
+    """Run VLM audit by splitting screenshot into overlapped vertical chunks."""
 
     image_path = _select_image_path(bundle)
     if not image_path:
         return []
 
-    original_data_url, width, height = _encode_original(image_path)
-    grid_data_url, grid_meta, grid_path = _encode_grid_image(image_path)
-    if not original_data_url or not grid_data_url:
+    chunks, width, height = _slice_image_vertical(image_path)
+    if not chunks or not width or not height:
         return []
 
+    screenshot_id = bundle.screenshots[0].id if bundle.screenshots else None
     checklist = [item.strip() for item in (checklist or []) if item and item.strip()]
-    summary = {
+
+    summary_base = {
         "source_url": bundle.source_url,
         "checklist": checklist,
         "reference_context": (reference_context or "")[:6000],
@@ -406,10 +357,7 @@ def audit_multimodal(
             "filename": image_path.name,
             "width": width,
             "height": height,
-            "screenshot_id": bundle.screenshots[0].id if bundle.screenshots else None,
-            "grid": grid_meta,
-            "grid_image": Path(grid_path).name if grid_path else None,
-            "grid_image_path": grid_path,
+            "screenshot_id": screenshot_id,
         },
         "qrcodes": [
             {
@@ -437,37 +385,50 @@ def audit_multimodal(
                 "text": t.text[:500],
                 "bbox": t.bbox.model_dump() if t.bbox else None,
             }
-            for t in bundle.text_blocks[:3]
+            for t in bundle.text_blocks[:8]
         ],
     }
 
-    try:
-        print(
-            "## Multimodal Prompt Payload:",
-            json.dumps(
-                {
-                    "image_size": [width, height],
-                    "grid": grid_meta,
-                    "grid_image": grid_path,
-                    "summary": summary,
-                },
-                ensure_ascii=False,
-            ),
-        )
-    except Exception:
-        pass
+    all_issues: list[dict] = []
 
-    summary_payload = json.dumps(summary, ensure_ascii=False)
-    raw = _call_vlm(
-        [original_data_url, grid_data_url],
-        summary_payload,
-        (width, height),
-        grid_meta=grid_meta,
-        enable_thinking=enable_thinking,
-        temperature=0.5,
-    )
-    print("## Raw Multimodal LLM Response", raw)
-    if not raw:
-        return []
-    screenshot_id = bundle.screenshots[0].id if bundle.screenshots else None
-    return _parse_issues(raw, screenshot_id, grid_meta)
+    def _run_one_chunk(chunk: dict) -> list[dict]:
+        payload = dict(summary_base)
+        payload["chunk"] = {
+            "index": chunk.get("chunk_index"),
+            "count": chunk.get("chunk_count"),
+            "x_offset": chunk.get("x_offset"),
+            "y_offset": chunk.get("y_offset"),
+            "width": chunk.get("width"),
+            "height": chunk.get("height"),
+            "notes": "bbox 使用当前切片坐标系，后端会自动映射到整图坐标。",
+        }
+        raw = _call_vlm(
+            chunk.get("image_data_url") or "",
+            json.dumps(payload, ensure_ascii=False),
+            chunk_meta=chunk,
+            enable_thinking=enable_thinking,
+            temperature=0.5,
+        )
+        print(
+            f"## Raw Multimodal LLM Response [chunk {chunk.get('chunk_index')}/{chunk.get('chunk_count')}]",
+            raw,
+        )
+        if not raw:
+            return []
+        return _parse_issues(
+            raw,
+            screenshot_id=screenshot_id,
+            chunk_meta=chunk,
+            full_size=(width, height),
+        )
+
+    max_workers = min(4, len(chunks))
+    with ThreadPoolExecutor(max_workers=max_workers) as executor:
+        futures = [executor.submit(_run_one_chunk, chunk) for chunk in chunks]
+        for future in as_completed(futures):
+            try:
+                all_issues.extend(future.result() or [])
+            except Exception:
+                continue
+
+    return _dedupe_issues(all_issues)

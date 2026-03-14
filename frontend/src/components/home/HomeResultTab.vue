@@ -62,7 +62,6 @@
                     ref="shotImg"
                     class="shot-img"
                     :src="screenshotSrc"
-                    crossorigin="anonymous"
                     alt="页面截图"
                     @load="onShotLoad"
                 />
