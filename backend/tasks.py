@@ -7,7 +7,7 @@ from uuid import uuid4
 from .capture import capture_article
 from .ingest import build_bundle_from_upload
 from .llm_multimodal import audit_multimodal
-from .llm_text import audit_text
+from .llm_text import audit_text, merge_llm_vlm_issues
 from .parser import enrich_bundle
 from .rag import retrieve_reference_context
 from .schema import (
@@ -281,7 +281,8 @@ def run_pipeline(
             reference_context=rag_context,
         )
 
-    issues = issues_text + issues_mm
+    _update_progress(task_id, 92, "Merging LLM and multimodal issues")
+    issues = merge_llm_vlm_issues(issues_text, issues_mm)
     try:
         print(
             f"[pipeline] issues_text={len(issues_text)}, issues_mm={len(issues_mm)}, total={len(issues)}"

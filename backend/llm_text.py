@@ -72,6 +72,95 @@ def _parse_issues(raw: str) -> List[Issue]:
     return data
 
 
+def _issue_to_dict(item) -> Optional[dict]:
+    if isinstance(item, Issue):
+        try:
+            return item.model_dump(mode="json")
+        except Exception:
+            return None
+    if isinstance(item, dict):
+        return dict(item)
+    return None
+
+
+def _merge_key(issue: dict) -> str:
+    evidence = issue.get("evidence") if isinstance(issue, dict) else {}
+    if not isinstance(evidence, dict):
+        evidence = {}
+
+    issue_type = str(issue.get("type") or "").strip().lower()
+    text_block_id = str(evidence.get("text_block_id") or "").strip().lower()
+    image_id = str(evidence.get("image_id") or "").strip().lower()
+    quote = " ".join(str(evidence.get("quote") or "").strip().lower().split())
+    bbox = evidence.get("bbox")
+    bbox_key = ""
+    if isinstance(bbox, dict):
+        try:
+            bbox_key = (
+                f"{int(bbox.get('x', 0))},{int(bbox.get('y', 0))},"
+                f"{int(bbox.get('width', 0))},{int(bbox.get('height', 0))}"
+            )
+        except Exception:
+            bbox_key = ""
+
+    # Key designed for coarse duplicate removal in fallback mode.
+    return "|".join([issue_type, text_block_id, image_id, quote, bbox_key])
+
+
+def merge_llm_vlm_issues(
+    issues_text: Optional[List],
+    issues_vlm: Optional[List],
+) -> List[dict]:
+    """Merge text-LLM and VLM issues with text-LLM priority on duplicates."""
+
+    text_items = [d for d in (_issue_to_dict(i) for i in (issues_text or [])) if d]
+    vlm_items = [d for d in (_issue_to_dict(i) for i in (issues_vlm or [])) if d]
+
+    if not text_items and not vlm_items:
+        return []
+    if not text_items:
+        return vlm_items
+    if not vlm_items:
+        return text_items
+
+    prompt = (
+        "你是审核结果合并器。请合并两组问题列表：\n"
+        "A=文本LLM结果（优先级更高）\n"
+        "B=视觉VLM结果\n\n"
+        "要求：\n"
+        "1) 识别语义上重复的问题（即使表达不同）。\n"
+        "2) 若重复，保留A对应项，删除B对应项。\n"
+        "3) 若不重复，保留。\n"
+        "4) 输出必须是 JSON 对象，形如 {\"issues\":[...]}。\n"
+        "5) 每项字段仅使用现有字段（id/type/severity/evidence/recommendation/confidence），不要新增字段。\n"
+        "6) 中文输出即可。\n\n"
+        f"A_JSON:\n{json.dumps(text_items, ensure_ascii=False)[:45000]}\n\n"
+        f"B_JSON:\n{json.dumps(vlm_items, ensure_ascii=False)[:45000]}"
+    )
+
+    raw = _call_llm(prompt)
+    merged = _parse_issues(raw) if raw else []
+    if isinstance(merged, list) and merged:
+        return [d for d in merged if isinstance(d, dict)]
+
+    # Fallback: exact-ish key de-dup, text LLM has priority.
+    seen = set()
+    result: List[dict] = []
+    for item in text_items:
+        key = _merge_key(item)
+        if key in seen:
+            continue
+        seen.add(key)
+        result.append(item)
+    for item in vlm_items:
+        key = _merge_key(item)
+        if key in seen:
+            continue
+        seen.add(key)
+        result.append(item)
+    return result
+
+
 def _call_llm(prompt: str) -> Optional[str]:
     cfg = _get_config()
     if not cfg["endpoint"] or not cfg["model"]:
