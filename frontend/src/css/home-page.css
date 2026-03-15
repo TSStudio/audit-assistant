@@ -738,6 +738,10 @@
 .shot-pane.drawing {
     cursor: crosshair;
 }
+.shot-pane.exporting {
+    align-items: flex-start;
+    justify-content: flex-start;
+}
 .shot-img {
     display: block;
     width: 100%;

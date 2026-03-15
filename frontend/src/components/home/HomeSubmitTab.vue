@@ -31,15 +31,10 @@
             >
                 Fast Mode（关闭 Thinking）
             </button>
-            <button
-                class="mode-pill"
-                :class="{ on: auditSpeed === 'slow' }"
-                :disabled="loading"
-                @click="auditSpeed = 'slow'"
-            >
-                Slow Mode（开启 Thinking）
-            </button>
         </div>
+        <p v-if="!slowModeEnabled" class="f-hint" style="margin-top: 8px">
+            游园会期间，为确保模型使用顺畅，Slow Mode 暂时禁用
+        </p>
 
         <template v-if="inputMode === 'url'">
             <label class="f-label">页面链接</label>
@@ -266,6 +261,7 @@ const {
     selectedFile,
     selectedFileName,
     selectedReferenceKbIds,
+    slowModeEnabled,
     startAudit,
     status,
     switchMode,

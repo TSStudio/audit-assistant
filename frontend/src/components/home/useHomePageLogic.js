@@ -117,10 +117,11 @@ function normalizeIssues(raw = []) {
 }
 
 export default function useHomePageLogic() {
+    const slowModeEnabled = false;
     const tab = ref("submit");
     const showMotivation = ref(true);
     const inputMode = ref("url");
-    const auditSpeed = ref("slow");
+    const auditSpeed = ref("fast");
     const urlInput = ref("");
     const selectedFile = ref(null);
     const fileInputRef = ref(null);
@@ -175,6 +176,19 @@ export default function useHomePageLogic() {
     let pollTimer = null;
     let easeTimer = null;
     let toastTimer = null;
+    let issueMeasureFrame = 0;
+
+    const issueElements = new Map();
+    const issueResizeObserver =
+        typeof ResizeObserver === "undefined"
+            ? null
+            : new ResizeObserver((entries) => {
+                  for (const entry of entries) {
+                      const id = entry.target?.dataset?.id;
+                      if (!id) continue;
+                      queueIssueHeightMeasure(id, entry.target);
+                  }
+              });
 
     // ★ resetState 回调机制，供外部（如 collabVm）注册
     const _resetCallbacks = [];
@@ -875,7 +889,10 @@ export default function useHomePageLogic() {
                 const fd = new FormData();
                 fd.append("url", urlInput.value.trim());
                 fd.append("checklist", JSON.stringify(cl));
-                fd.append("fast_mode", String(auditSpeed.value === "fast"));
+                fd.append(
+                    "fast_mode",
+                    String(!slowModeEnabled || auditSpeed.value === "fast"),
+                );
                 fd.append(
                     "selected_checklist_ids",
                     JSON.stringify(selectedChecklistIds),
@@ -892,7 +909,10 @@ export default function useHomePageLogic() {
                 const fd = new FormData();
                 fd.append("file", selectedFile.value);
                 fd.append("checklist", JSON.stringify(cl));
-                fd.append("fast_mode", String(auditSpeed.value === "fast"));
+                fd.append(
+                    "fast_mode",
+                    String(!slowModeEnabled || auditSpeed.value === "fast"),
+                );
                 fd.append(
                     "selected_checklist_ids",
                     JSON.stringify(selectedChecklistIds),
@@ -1186,21 +1206,51 @@ export default function useHomePageLogic() {
     function boxStyle(issue) {
         const bbox = issue?.evidence?.bbox;
         if (!bbox) return {};
+        const wrapperRect = shotWrapper.value?.getBoundingClientRect();
+        const imageRect = shotImg.value?.getBoundingClientRect();
+        const offsetX =
+            imageRect && wrapperRect ? imageRect.left - wrapperRect.left : 0;
+        const offsetY =
+            imageRect && wrapperRect ? imageRect.top - wrapperRect.top : 0;
         const sx = shotDisplay.value.w / (shotNatural.value.w || 1);
         const sy = shotDisplay.value.h / (shotNatural.value.h || 1);
         return {
-            left: `${bbox.x * sx}px`,
-            top: `${bbox.y * sy}px`,
+            left: `${offsetX + bbox.x * sx}px`,
+            top: `${offsetY + bbox.y * sy}px`,
             width: `${bbox.width * sx}px`,
             height: `${bbox.height * sy}px`,
         };
     }
 
-    function setIssueRef(id, el) {
-        if (!el) return;
+    function flushIssueHeightMeasure(id, el) {
+        if (!el?.isConnected) return;
         const h = el.getBoundingClientRect().height;
+        if (!Number.isFinite(h) || h <= 0) return;
         if (Math.abs((issueHeights.value[id] || 0) - h) < 0.5) return;
         issueHeights.value = { ...issueHeights.value, [id]: h };
+    }
+
+    function queueIssueHeightMeasure(id, el) {
+        if (!id || !el) return;
+        if (issueMeasureFrame) cancelAnimationFrame(issueMeasureFrame);
+        issueMeasureFrame = requestAnimationFrame(() => {
+            issueMeasureFrame = 0;
+            flushIssueHeightMeasure(id, el);
+        });
+    }
+
+    function setIssueRef(id, el) {
+        const prev = issueElements.get(id);
+        if (prev && prev !== el) {
+            issueResizeObserver?.unobserve(prev);
+        }
+        if (!el) {
+            issueElements.delete(id);
+            return;
+        }
+        issueElements.set(id, el);
+        issueResizeObserver?.observe(el);
+        queueIssueHeightMeasure(id, el);
     }
 
     async function loadLib(url, path) {
@@ -1231,6 +1281,8 @@ export default function useHomePageLogic() {
         exportMode.value = true;
         error.value = "";
         await nextTick();
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+        await new Promise((resolve) => requestAnimationFrame(resolve));
         try {
             const h2c = await loadLib(
                 "https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js",
@@ -1249,8 +1301,6 @@ export default function useHomePageLogic() {
                 useCORS: true,
                 allowTaint: false,
                 backgroundColor: "#fff",
-                scrollX: 0,
-                scrollY: -window.scrollY,
             });
             const img = canvas.toDataURL("image/png");
             const pdf = new jPDF("p", "mm", "a4");
@@ -1300,16 +1350,10 @@ export default function useHomePageLogic() {
 
     watch(displayIssues, () => {
         issueHeights.value = {};
-        nextTick(() => {});
-    });
-
-    // ★ hover 变化时自动滚动对应卡片进入视野
-    watch(hoverIssueId, (id) => {
-        if (!id) return;
         nextTick(() => {
-            document
-                .querySelector(`.i-card[data-id="${id}"]`)
-                ?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+            for (const [id, el] of issueElements.entries()) {
+                queueIssueHeightMeasure(id, el);
+            }
         });
     });
 
@@ -1318,6 +1362,9 @@ export default function useHomePageLogic() {
     onBeforeUnmount(() => {
         stopPoll();
         stopEase();
+        if (issueMeasureFrame) cancelAnimationFrame(issueMeasureFrame);
+        issueResizeObserver?.disconnect();
+        issueElements.clear();
         window.removeEventListener("keydown", onKeyDown);
     });
 
@@ -1332,6 +1379,7 @@ export default function useHomePageLogic() {
         achievements,
         allResolved,
         auditSpeed,
+        slowModeEnabled,
         beginDraw,
         boxStyle,
         cancelDraw,
@@ -1355,6 +1403,7 @@ export default function useHomePageLogic() {
         drawingPreview,
         endDraw,
         error,
+        exportMode,
         exportPdf,
         exportingPdf,
         fileInputRef,

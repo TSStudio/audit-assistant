@@ -10,3 +10,4 @@ captures
 backend/audit_cache.db
 backend/audit_store.db
 backend/chroma_store
+jumper.php
